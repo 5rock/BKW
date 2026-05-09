@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "id": "u1778301084781",
+      "name": "ritesh ",
+      "email": "rocky295612@gmail.com",
+      "password": "$2a$10$QOJHSrX/Cmr96.cG81qr.u.WMp7cUoAi.rm3Q2m1wysAb3yHS49.q",
+      "role": "buyer",
+      "createdAt": "2026-05-09T04:31:24.783Z"
+    }
+  ],
+  "products": [],
+  "carts": []
+}
