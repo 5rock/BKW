@@ -1,22 +1,80 @@
-import { Navigate } from 'react-router-dom';
+/**
+ * ProtectedRoute.jsx  (refactored)
+ *
+ * Wraps any route that requires authentication.
+ *
+ * Props:
+ *   requireSeller  — gate to isSeller (backend-set flag)
+ *   requireAdmin   — gate to isAdmin  (backend-set flag)
+ *   requireVerified — gate to emailVerified
+ *
+ * Permission flags come from the backend via AuthContext.
+ * The frontend never decides roles.
+ */
+
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { motion } from 'framer-motion';
 
-const ProtectedRoute = ({ children, requireSeller = false }) => {
-  const { user, loading } = useAuth();
+const Spinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex flex-col items-center gap-4"
+    >
+      <div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+      <p className="text-gray-400 text-sm font-medium">Loading…</p>
+    </motion.div>
+  </div>
+);
 
-  if (loading) {
+const ProtectedRoute = ({
+  children,
+  requireSeller   = false,
+  requireAdmin    = false,
+  requireVerified = false,
+}) => {
+  const { user, loading, isAdmin, isSeller } = useAuth();
+  const location = useLocation();
+
+  if (loading) return <Spinner />;
+
+  // Not logged in → redirect to login, remembering the intended route
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  }
+
+  // Email verification wall
+  if (requireVerified && !user.emailVerified) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
+  // Seller gate — uses backend-set isSeller flag
+  if (requireSeller && !isSeller) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Admin gate — uses backend-set isAdmin flag
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Blocked account
+  if (user.isBlocked) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary-container border-t-transparent rounded-full animate-spin" />
-          <p className="text-gray-500 font-medium">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="text-center max-w-md">
+          <span className="material-symbols-outlined text-6xl text-red-400 mb-4 block">block</span>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Account Suspended</h2>
+          <p className="text-gray-500 text-sm">
+            Your account has been suspended. Please contact{' '}
+            <a href="mailto:support@goldmarket.com" className="text-amber-600 underline">support@goldmarket.com</a>.
+          </p>
         </div>
       </div>
     );
   }
-
-  if (!user) return <Navigate to="/login" replace />;
-  if (requireSeller && user.role !== 'seller') return <Navigate to="/" replace />;
 
   return children;
 };
