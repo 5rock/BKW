@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, Camera, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { MessageSquare, X, Send, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const INITIAL_MESSAGES = [
@@ -21,7 +21,13 @@ const Chatbot = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const messageIdRef = useRef(10);
   const navigate = useNavigate();
+
+  const nextMessageId = () => {
+    messageIdRef.current += 1;
+    return messageIdRef.current;
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,7 +40,7 @@ const Chatbot = () => {
   const handleSend = async (text = inputValue) => {
     if (!text.trim()) return;
 
-    const newMsg = { id: Date.now(), text, sender: 'user' };
+    const newMsg = { id: nextMessageId(), text, sender: 'user' };
     setMessages(prev => [...prev, newMsg]);
     setInputValue('');
     setIsTyping(true);
@@ -56,7 +62,7 @@ const Chatbot = () => {
         botResponse = "Hello! How can I assist your shopping today?";
       }
 
-      setMessages(prev => [...prev, { id: Date.now(), text: botResponse, sender: 'bot' }]);
+      setMessages(prev => [...prev, { id: nextMessageId(), text: botResponse, sender: 'bot' }]);
       
       if (redirectUrl) {
         setTimeout(() => {
@@ -72,7 +78,7 @@ const Chatbot = () => {
     if (!file) return;
 
     const imageUrl = URL.createObjectURL(file);
-    setMessages(prev => [...prev, { id: Date.now(), image: imageUrl, sender: 'user' }]);
+    setMessages(prev => [...prev, { id: nextMessageId(), image: imageUrl, sender: 'user' }]);
     setIsTyping(true);
 
     // Simulate AI image recognition
@@ -81,7 +87,7 @@ const Chatbot = () => {
       setMessages(prev => [
         ...prev, 
         { 
-          id: Date.now(), 
+          id: nextMessageId(), 
           text: "I analyzed the image. It looks like you're searching for a Premium Watch. Here are some similar products!", 
           sender: 'bot' 
         }

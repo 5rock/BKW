@@ -1,136 +1,187 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
- * AuthContext.jsx  (refactored)
+ * AuthContext.jsx — Firebase-first complete rewrite
  *
- * Provides auth state and actions to the entire app.
- * - Persists session via localStorage (access + refresh tokens)
- * - Validates session against backend on app load
- * - Exposes backend-set permission flags (isAdmin, isSeller)
- * - Never trusts frontend-determined roles
+ * Architecture:
+ *  • Firebase Auth is the SINGLE source of truth for identity
+ *  • Firestore stores the user profile + role (never from frontend input)
+ *  • onAuthStateChanged drives all auth state reactively
+ *  • Role-based flags: isAdmin, isSeller derived from Firestore doc
  */
 
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { fetchMyProfile, logoutApi, firebaseLogout } from '../services/authService';
 import {
-  registerWithEmail,
-  loginWithEmail,
-  loginWithGoogle,
-  loginWithFacebook,
-  loginWithGithub,
-} from '../services/authService';
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  updateProfile,
+} from 'firebase/auth';
+import { auth, googleProvider, githubProvider, facebookProvider } from '../firebase/config';
+import {
+  getUserProfile,
+  createUserProfile,
+  getOrCreateProfile,
+} from '../firebase/userService';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext(null);
 
-const TOKEN_KEY   = 'gm_access_token';
-const REFRESH_KEY = 'gm_refresh_token';
-const USER_KEY    = 'gm_user';
-
-const persistSession = (accessToken, refreshToken, user) => {
-  localStorage.setItem(TOKEN_KEY,   accessToken);
-  localStorage.setItem(REFRESH_KEY, refreshToken);
-  localStorage.setItem(USER_KEY,    JSON.stringify(user));
-};
-
-const clearSession = () => {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(REFRESH_KEY);
-  localStorage.removeItem(USER_KEY);
-};
-
 export const AuthProvider = ({ children }) => {
-  const [user,    setUser]    = useState(null);
+  const [userProfile, setUserProfile] = useState(null); // Firestore doc
+  const [firebaseUser, setFirebaseUser] = useState(null); // Firebase user obj
   const [loading, setLoading] = useState(true);
 
-  // ── On mount: restore session then validate with backend
+  // ── Reactive auth state listener — runs once on mount
   useEffect(() => {
-    const restore = async () => {
-      const storedUser  = localStorage.getItem(USER_KEY);
-      const accessToken = localStorage.getItem(TOKEN_KEY);
-
-      if (storedUser && accessToken) {
-        setUser(JSON.parse(storedUser)); // optimistic UI restore
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      setFirebaseUser(fbUser);
+      if (fbUser) {
         try {
-          const { data } = await fetchMyProfile();
-          setUser(data); // replace with fresh backend data
-          localStorage.setItem(USER_KEY, JSON.stringify(data));
-        } catch {
-          // Token expired or invalid — api.js interceptor will attempt refresh
-          // If refresh also fails, interceptor redirects to /login
+          let profile = await getUserProfile(fbUser.uid);
+          // First-time OAuth user — auto-create Firestore doc
+          if (!profile) {
+            const provider = fbUser.providerData[0]?.providerId?.split('.')[0] || 'email';
+            profile = await createUserProfile({
+              uid:           fbUser.uid,
+              name:          fbUser.displayName || fbUser.email.split('@')[0],
+              email:         fbUser.email,
+              avatar:        fbUser.photoURL || null,
+              provider,
+              emailVerified: fbUser.emailVerified,
+            });
+          }
+          setUserProfile(profile);
+        } catch (err) {
+          console.error('Auth state profile fetch failed:', err);
+          setUserProfile(null);
         }
+      } else {
+        setUserProfile(null);
       }
       setLoading(false);
-    };
-    restore();
+    });
+    return unsubscribe;
   }, []);
 
-  // ─── Session helpers ────────────────────────────────────────────────────────
-
-  const handleAuthResponse = useCallback(({ data }) => {
-    const { accessToken, refreshToken, user: u } = data;
-    persistSession(accessToken, refreshToken, u);
-    setUser(u);
-    return u;
+  // ─── Helper: navigate by role (returns the path, page handles navigation)
+  const getRoleRedirect = useCallback((role) => {
+    if (role === 'admin')  return '/admin';
+    if (role === 'seller') return '/seller';
+    return '/';
   }, []);
 
-  // ─── Actions ────────────────────────────────────────────────────────────────
-
-  /** Email/password signup — sends NO role field */
+  // ─── Email / Password Register
   const register = async (name, email, password) => {
-    const res = await registerWithEmail(name, email, password);
-    return handleAuthResponse(res);
-  };
-
-  /** Email/password login */
-  const login = async (email, password) => {
-    const res = await loginWithEmail(email, password);
-    return handleAuthResponse(res);
-  };
-
-  /** Google OAuth */
-  const signInWithGoogle = async () => {
-    const res = await loginWithGoogle();
-    return handleAuthResponse(res);
-  };
-
-  /** Facebook OAuth */
-  const signInWithFacebook = async () => {
-    const res = await loginWithFacebook();
-    return handleAuthResponse(res);
-  };
-
-  /** GitHub OAuth */
-  const signInWithGithub = async () => {
-    const res = await loginWithGithub();
-    return handleAuthResponse(res);
-  };
-
-  /** Logout — clears both Firebase session and backend session */
-  const logout = async () => {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    // Set displayName in Firebase Auth
+    await updateProfile(cred.user, { displayName: name });
+    // Create Firestore profile (role resolved by backend logic in userService)
+    const profile = await createUserProfile({
+      uid:           cred.user.uid,
+      name,
+      email,
+      provider:      'email',
+      emailVerified: false,
+    });
+    // Send verification email
     try {
-      await Promise.allSettled([logoutApi(), firebaseLogout()]);
-    } finally {
-      clearSession();
-      setUser(null);
-      toast.success('Signed out successfully');
+      await sendEmailVerification(cred.user);
+    } catch {
+      // Verification email failures should not block account creation.
     }
+    return { user: profile, redirect: getRoleRedirect(profile.role) };
   };
 
-  // ── Derived permission flags — from backend-set user object, NEVER frontend logic
-  const isAdmin  = user?.isAdmin  ?? false;
-  const isSeller = user?.isSeller ?? false;
+  // ─── Email / Password Login
+  const login = async (email, password) => {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    // Fetch fresh role from Firestore (not from token — Firestore is truth)
+    const profile = await getUserProfile(cred.user.uid);
+    return { user: profile, redirect: getRoleRedirect(profile?.role || 'customer') };
+  };
+
+  // ─── Google OAuth
+  const signInWithGoogle = async () => {
+    const result  = await signInWithPopup(auth, googleProvider);
+    const profile = await getOrCreateProfile(result.user, 'google');
+    return { user: profile, redirect: getRoleRedirect(profile.role) };
+  };
+
+  // ─── GitHub OAuth
+  const signInWithGithub = async () => {
+    const result  = await signInWithPopup(auth, githubProvider);
+    const profile = await getOrCreateProfile(result.user, 'github');
+    return { user: profile, redirect: getRoleRedirect(profile.role) };
+  };
+
+  // ─── Facebook OAuth
+  const signInWithFacebook = async () => {
+    const result  = await signInWithPopup(auth, facebookProvider);
+    const profile = await getOrCreateProfile(result.user, 'facebook');
+    return { user: profile, redirect: getRoleRedirect(profile.role) };
+  };
+
+  // ─── Password Reset
+  const sendPasswordReset = async (email) => sendPasswordResetEmail(auth, email);
+
+  // ─── Resend email verification
+  const resendVerification = async () => {
+    if (auth.currentUser) await sendEmailVerification(auth.currentUser);
+  };
+
+  // ─── Logout
+  const logout = async () => {
+    await signOut(auth);
+    setUserProfile(null);
+    setFirebaseUser(null);
+    toast.success('Signed out successfully');
+  };
+
+  // ─── Derived permission flags — from Firestore doc only
+  const role     = userProfile?.role     || 'customer';
+  const isAdmin  = userProfile?.isAdmin  || role === 'admin';
+  const isSeller = userProfile?.isSeller || role === 'seller' || role === 'admin';
+
+  // ─── Normalize user object — same shape as before for Navbar/other components
+  const user = userProfile ? {
+    uid:           userProfile.uid,
+    name:          userProfile.name,
+    email:         userProfile.email,
+    role,
+    isAdmin,
+    isSeller,
+    avatar:        userProfile.avatar || null,
+    emailVerified: firebaseUser?.emailVerified || userProfile.emailVerified || false,
+    isBlocked:     userProfile.isBlocked || false,
+  } : null;
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        firebaseUser,
         loading,
+        role,
         isAdmin,
         isSeller,
+        getRoleRedirect,
         register,
         login,
         signInWithGoogle,
-        signInWithFacebook,
         signInWithGithub,
+        signInWithFacebook,
+        sendPasswordReset,
+        resendVerification,
         logout,
       }}
     >

@@ -8,8 +8,6 @@
 import api from './api';
 import {
   signInWithPopup,
-  signInWithEmailAndPassword as firebaseEmailLogin,
-  createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   sendEmailVerification,
   signOut as firebaseSignOut,

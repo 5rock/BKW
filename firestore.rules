@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function role() {
+      return signedIn() ? profile().role : 'customer';
+    }
+
+    function isAdmin() {
+      return signedIn() && (profile().isAdmin == true || role() == 'admin');
+    }
+
+    function isSeller() {
+      return signedIn() && (profile().isSeller == true || role() == 'seller' || isAdmin());
+    }
+
+    match /products/{productId} {
+      allow read: if resource.data.status == 'active' || isAdmin() || (signedIn() && resource.data.sellerId == request.auth.uid);
+      allow create: if isSeller()
+        && request.resource.data.sellerId == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.price is number
+        && request.resource.data.stock is number;
+      allow update, delete: if isAdmin() || (signedIn() && resource.data.sellerId == request.auth.uid);
+
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if signedIn()
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.rating >= 1
+          && request.resource.data.rating <= 5;
+        allow update, delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      }
+    }
+
+    match /carts/{userId} {
+      allow read, write: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /wishlists/{userId} {
+      allow read, write: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow update: if signedIn() && request.auth.uid == userId;
+      allow create: if signedIn() && request.auth.uid == userId;
+      allow delete: if isAdmin();
+    }
+  }
+}

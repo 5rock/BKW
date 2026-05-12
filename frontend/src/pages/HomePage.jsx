@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronRight, ShieldCheck, Truck, RotateCcw, TrendingUp } from 'lucide-react';
-import { fetchProducts } from '../services/api';
+import { getProducts } from '../services/productService';
 import ProductCard from '../components/ProductCard';
 
 const CATEGORIES = [
@@ -27,8 +27,8 @@ const HomePage = () => {
   const [timer, setTimer] = useState({ h: 11, m: 59, s: 42 });
 
   useEffect(() => {
-    fetchProducts({ sort: 'rating' })
-      .then((res) => setFeaturedProducts(res.data.products.slice(0, 8)))
+    getProducts({ sort: 'top_rated', limit: 8 })
+      .then((res) => setFeaturedProducts(res.products.slice(0, 8)))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -137,7 +137,7 @@ const HomePage = () => {
           </div>
           
           <div className="relative z-10 flex gap-4 items-center">
-            {[['h', 'Hours'], ['m', 'Mins'], ['s', 'Secs']].map(([key, label], i) => (
+            {[['h', 'Hours'], ['m', 'Mins'], ['s', 'Secs']].map(([key, label]) => (
               <div key={key} className="flex flex-col items-center">
                 <div className="glass w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center rounded-xl text-white font-black text-2xl sm:text-3xl shadow-lg border-white/30">
                   {pad(timer[key])}

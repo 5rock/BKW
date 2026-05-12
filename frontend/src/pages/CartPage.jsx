@@ -6,31 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, ArrowRight, ShieldCheck, Truck, ArrowLeft, Tag } from 'lucide-react';
 
 const CartPage = () => {
-  const { cartItems, cartTotal, loading } = useCart();
+  const { cartItems, savedItems, cartTotal, loading } = useCart();
   const { user } = useAuth();
 
   const tax = cartTotal * 0.08;
   const shipping = cartTotal > 150 ? 0 : 9.99;
   const grandTotal = cartTotal > 0 ? cartTotal + tax + shipping : 0;
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center flex-col gap-6 pt-20">
-        <motion.div 
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="w-32 h-32 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center shadow-inner mb-4"
-        >
-          <ShoppingBag className="h-16 w-16 text-gray-400 dark:text-gray-500" />
-        </motion.div>
-        <h2 className="text-3xl font-black text-text-light dark:text-text-dark tracking-tight">Sign in to view your cart</h2>
-        <p className="text-text-muted-light dark:text-text-muted-dark max-w-md text-center">Save your items and checkout faster by logging into your MarketX account.</p>
-        <Link to="/login" className="bg-text-light dark:bg-white text-white dark:text-text-light font-bold px-10 py-4 rounded-full hover:scale-105 active:scale-95 transition-transform shadow-lg mt-4">
-          Sign In Now
-        </Link>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen pt-28 pb-20">
@@ -38,6 +19,7 @@ const CartPage = () => {
         
         <div className="flex items-center gap-3 mb-8">
           <h1 className="text-3xl md:text-4xl font-black text-text-light dark:text-text-dark tracking-tight">Shopping Cart</h1>
+          {!user && <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-black text-yellow-700">Guest cart</span>}
           {cartItems.length > 0 && (
             <span className="bg-gray-200 dark:bg-gray-800 text-text-light dark:text-text-dark text-sm font-bold px-3 py-1 rounded-full">
               {cartItems.length} {cartItems.length === 1 ? 'Item' : 'Items'}
@@ -83,6 +65,15 @@ const CartPage = () => {
                   <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
                   Continue Shopping
                 </Link>
+              </div>
+            )}
+
+            {!loading && savedItems.length > 0 && (
+              <div className="pt-8">
+                <h2 className="mb-4 text-2xl font-black text-text-light dark:text-white">Saved for Later</h2>
+                <div className="space-y-4">
+                  {savedItems.map((item) => <CartItem key={item.id} item={item} />)}
+                </div>
               </div>
             )}
           </div>

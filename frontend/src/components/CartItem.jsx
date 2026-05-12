@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import { Minus, Plus, Trash2, Bookmark } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const CartItem = ({ item }) => {
-  const { updateItem, removeItem } = useCart();
+  const { updateItem, removeItem, saveForLater } = useCart();
   const [loading, setLoading] = useState(false);
   const { product, quantity, id: itemId } = item;
 
   if (!product) return null;
+  const unitPrice = item.price || product.finalPrice || product.price || 0;
 
   const handleQuantity = async (delta) => {
     const newQty = quantity + delta;
@@ -61,10 +62,10 @@ const CartItem = ({ item }) => {
           </div>
           <div className="text-right">
             <span className="font-black text-xl text-text-light dark:text-text-dark whitespace-nowrap">
-              ${(product.price * quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ${(unitPrice * quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
             {quantity > 1 && (
-              <p className="text-xs text-text-muted-light dark:text-text-muted-dark mt-1">${product.price.toLocaleString()} each</p>
+              <p className="text-xs text-text-muted-light dark:text-text-muted-dark mt-1">${unitPrice.toLocaleString()} each</p>
             )}
           </div>
         </div>
@@ -90,13 +91,22 @@ const CartItem = ({ item }) => {
           </div>
 
           {/* Remove */}
-          <button
-            onClick={handleRemove}
-            className="text-text-muted-light hover:text-brand-red dark:text-text-muted-dark dark:hover:text-brand-red font-semibold text-sm flex items-center gap-1.5 transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-          >
-            <Trash2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Remove</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => saveForLater(itemId, !item.savedForLater)}
+              className="text-text-muted-light hover:text-brand-yellow dark:text-text-muted-dark dark:hover:text-brand-yellow font-semibold text-sm flex items-center gap-1.5 transition-colors p-2 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+            >
+              <Bookmark className="h-4 w-4" />
+              <span className="hidden sm:inline">{item.savedForLater ? 'Move to cart' : 'Save'}</span>
+            </button>
+            <button
+              onClick={handleRemove}
+              className="text-text-muted-light hover:text-brand-red dark:text-text-muted-dark dark:hover:text-brand-red font-semibold text-sm flex items-center gap-1.5 transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Remove</span>
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>

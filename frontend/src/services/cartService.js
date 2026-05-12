@@ -1,0 +1,66 @@
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { getProductById } from './productService';
+
+const GUEST_CART_KEY = 'marketx_guest_cart';
+const WISHLIST_KEY = 'marketx_guest_wishlist';
+
+const readLocal = (key) => JSON.parse(localStorage.getItem(key) || '[]');
+const writeLocal = (key, value) => localStorage.setItem(key, JSON.stringify(value));
+const cartDoc = (uid) => doc(db, 'carts', uid);
+const wishlistDoc = (uid) => doc(db, 'wishlists', uid);
+
+const hydrateItems = async (items = []) => {
+  const hydrated = await Promise.all(
+    items.map(async (item) => {
+      try {
+        const product = await getProductById(item.productId);
+        return { ...item, product, price: product.finalPrice };
+      } catch {
+        return null;
+      }
+    })
+  );
+  return hydrated.filter(Boolean);
+};
+
+export const loadCart = async (user) => {
+  const raw = user?.uid
+    ? (await getDoc(cartDoc(user.uid))).data()?.items || []
+    : readLocal(GUEST_CART_KEY);
+  const items = await hydrateItems(raw);
+  return {
+    items,
+    total: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+  };
+};
+
+export const saveCart = async (user, items) => {
+  const compact = items.map(({ productId, quantity, savedForLater = false, selectedSize = '', selectedColor = '' }) => ({
+    productId,
+    quantity,
+    savedForLater,
+    selectedSize,
+    selectedColor,
+  }));
+  if (user?.uid) {
+    await setDoc(cartDoc(user.uid), { userId: user.uid, items: compact, updatedAt: serverTimestamp() }, { merge: true });
+  } else {
+    writeLocal(GUEST_CART_KEY, compact);
+  }
+};
+
+export const loadWishlist = async (user) => {
+  const ids = user?.uid
+    ? (await getDoc(wishlistDoc(user.uid))).data()?.productIds || []
+    : readLocal(WISHLIST_KEY);
+  return ids;
+};
+
+export const saveWishlist = async (user, productIds) => {
+  if (user?.uid) {
+    await setDoc(wishlistDoc(user.uid), { userId: user.uid, productIds, updatedAt: serverTimestamp() }, { merge: true });
+  } else {
+    writeLocal(WISHLIST_KEY, productIds);
+  }
+};
