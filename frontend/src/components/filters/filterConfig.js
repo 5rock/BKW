@@ -40,7 +40,6 @@ export const BRAND_OPTIONS = [
   { label: 'Samsung', logo: 'S' },
   { label: 'Sony', logo: 'S' },
   { label: "Levi's", logo: 'L' },
-  { label: 'MarketX', logo: 'MX' },
   { label: 'GoldMarket', logo: 'GM' },
   { label: 'Zara', logo: 'Z' },
   { label: 'H&M', logo: 'H' },

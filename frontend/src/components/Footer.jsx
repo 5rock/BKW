@@ -1,78 +1,105 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowRight, BadgeCheck, Globe2, LockKeyhole, Mail, Radio, Send, ShieldCheck, Smartphone, Users } from 'lucide-react';
+import { footerLinks } from '../constants/marketplace';
+
+const routeFor = (label) => {
+  const routes = {
+    'About Us': '/about',
+    'Shipping Info': '/shipping-info',
+    'Returns & Refunds': '/returns',
+    'Contact Us': '/contact',
+    'Live Support': '/contact',
+    FAQs: '/contact',
+  };
+  return routes[label] || '/products';
+};
 
 const Footer = () => {
+  const [subscribed, setSubscribed] = useState(false);
+
   return (
-    <footer className="w-full border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 mt-auto">
-      <div className="max-w-[1280px] mx-auto px-6 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          {/* Brand */}
+    <footer className="relative overflow-hidden border-t border-white/10 bg-[#030303] pb-24 pt-16 text-white sm:pb-10">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300 to-transparent" />
+      <div className="absolute left-1/2 top-0 h-80 w-[40rem] -translate-x-1/2 rounded-full bg-amber-300/10 blur-3xl" />
+
+      <div className="luxury-shell relative">
+        <div className="grid gap-10 lg:grid-cols-[1.3fr_2fr_1.1fr]">
           <div>
-            <Link to="/" className="text-lg font-bold text-gray-900 dark:text-white block mb-4">GoldMarket</Link>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 max-w-[200px]">
-              The world's most trusted marketplace for gold, jewelry, and luxury investment assets.
+            <Link to="/" className="mb-5 inline-flex items-center gap-3">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-amber-100 via-yellow-500 to-orange-300 text-xl font-black text-black">G</span>
+              <span>
+                <span className="block text-2xl font-black">GoldMarket</span>
+                <span className="text-xs font-bold uppercase tracking-[0.34em] text-amber-200">MarketX</span>
+              </span>
+            </Link>
+            <p className="max-w-sm text-sm leading-7 text-white/58">
+              A luxury marketplace for verified sellers, authenticated products, fast delivery, and beautifully engineered commerce.
             </p>
-            <div className="flex gap-3">
-              {['public', 'alternate_email', 'language'].map((icon) => (
-                <a key={icon} href="#" className="text-gray-400 hover:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-xl">{icon}</span>
+            <div className="mt-6 flex gap-3">
+              {[Globe2, Radio, Mail, Users].map((Icon, index) => (
+                <a key={index} href="#" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[0.06] text-white/70 transition hover:border-amber-200/40 hover:text-amber-200">
+                  <Icon className="h-4 w-4" />
                 </a>
+              ))}
+            </div>
+            <div className="mt-6 grid max-w-sm grid-cols-2 gap-3">
+              {['App Store', 'Google Play'].map((store) => (
+                <button key={store} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-left">
+                  <Smartphone className="h-5 w-5 text-amber-200" />
+                  <span className="text-xs font-black">{store}</span>
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Company */}
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-sm">Company</h4>
-            <ul className="space-y-2">
-              {['About Us', 'Careers', 'Privacy Policy', 'Terms of Service'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-secondary hover:underline decoration-primary-container underline-offset-4 text-sm transition-all duration-200">
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
+          <div className="grid grid-cols-1 gap-7 sm:grid-cols-3">
+            {Object.entries(footerLinks).map(([title, links]) => (
+              <div key={title}>
+                <h3 className="mb-4 text-sm font-black uppercase tracking-[0.18em] text-amber-200">{title}</h3>
+                <ul className="space-y-3">
+                  {links.map((link) => (
+                    <li key={link}>
+                      <Link to={routeFor(link)} className="text-sm font-semibold text-white/56 transition hover:text-white">
+                        {link}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
 
-          {/* Services */}
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-sm">Services</h4>
-            <ul className="space-y-2">
-              {['Shipping Info', 'Returns', 'Bulk Orders', 'Gift Cards', 'Help Center'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-secondary hover:underline decoration-primary-container underline-offset-4 text-sm transition-all duration-200">
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Newsletter */}
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-sm">Newsletter</h4>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Get the latest updates on gold rates and luxury trends.</p>
-            <div className="flex gap-2">
-              <input
-                type="email"
-                placeholder="Email"
-                className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-2 px-3 focus:ring-1 focus:ring-primary-container outline-none text-sm dark:text-white"
-              />
-              <button className="bg-primary-container p-2 rounded-lg hover:bg-primary-fixed-dim transition-colors">
-                <span className="material-symbols-outlined text-on-primary-container">send</span>
-              </button>
+          <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-xl">
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-amber-200">Newsletter</p>
+            <h3 className="mt-3 text-2xl font-black">Join 50,000+ luxury shoppers.</h3>
+            <p className="mt-3 text-sm leading-6 text-white/58">Private drops, authenticated deals, and premium shopping intelligence.</p>
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                setSubscribed(true);
+              }}
+              className="mt-5 flex overflow-hidden rounded-full border border-white/10 bg-black/35 p-1"
+            >
+              <input type="email" required placeholder="Email address" className="min-w-0 flex-1 bg-transparent px-4 text-sm text-white outline-none placeholder:text-white/35" />
+              <motion.button whileTap={{ scale: 0.95 }} className="grid h-11 w-11 place-items-center rounded-full bg-amber-300 text-black" aria-label="Subscribe">
+                {subscribed ? <BadgeCheck className="h-5 w-5" /> : <Send className="h-5 w-5" />}
+              </motion.button>
+            </form>
+            {subscribed && <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-3 text-sm font-bold text-emerald-300">You are on the private list.</motion.p>}
+            <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold text-white/52">
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-2"><ShieldCheck className="h-3.5 w-3.5 text-amber-200" /> Buyer protected</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-2"><LockKeyhole className="h-3.5 w-3.5 text-amber-200" /> SSL secured</span>
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">© 2024 GoldMarket Global. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined text-gray-400">payments</span>
-            <span className="material-symbols-outlined text-gray-400">lock</span>
-            <span className="material-symbols-outlined icon-filled text-gray-400">verified_user</span>
-          </div>
+        <div className="mt-12 flex flex-col justify-between gap-4 border-t border-white/10 pt-6 text-sm text-white/45 md:flex-row md:items-center">
+          <p>© 2026 GoldMarket / MarketX. All rights reserved.</p>
+          <Link to="/products" className="inline-flex items-center gap-2 font-black text-amber-200">
+            Explore the marketplace <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </footer>

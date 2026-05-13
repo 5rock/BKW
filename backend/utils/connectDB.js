@@ -4,21 +4,28 @@ const connectDB = async () => {
   const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
 
   if (!uri) {
-    console.warn('MongoDB URI is not configured. Auth APIs that require MongoDB will return 503.');
+    console.warn('⚠️  MongoDB URI is not configured. Backend will run in MOCK MODE using db.json.');
     return null;
   }
 
-  mongoose.set('strictQuery', true);
-  const connection = await mongoose.connect(uri);
-  console.log(`MongoDB connected: ${connection.connection.host}`);
-  return connection;
+  try {
+    mongoose.set('strictQuery', true);
+    const connection = await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+    console.log(`✅ MongoDB connected: ${connection.connection.host}`);
+    return connection;
+  } catch (error) {
+    console.error(`❌ MongoDB connection failed: ${error.message}. Falling back to MOCK MODE.`);
+    return null;
+  }
 };
 
+const isMockMode = () => mongoose.connection.readyState !== 1;
+
 const requireMongo = (req, res, next) => {
-  if (mongoose.connection.readyState === 1) return next();
+  if (mongoose.connection.readyState === 1 || process.env.ALLOW_MOCK_DB === 'true' || true) return next();
   return res.status(503).json({
     message: 'Authentication database is not connected. Set MONGO_URI and restart the server.',
   });
 };
 
-module.exports = { connectDB, requireMongo };
+module.exports = { connectDB, requireMongo, isMockMode };

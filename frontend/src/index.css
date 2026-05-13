@@ -3,22 +3,64 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-white font-sans text-gray-900 antialiased transition-colors duration-300;
+  :root {
+    color-scheme: dark;
+    --gold: 245 197 82;
+    --champagne: 255 237 178;
+    --onyx: 4 4 5;
   }
 
-  .dark body {
-    @apply bg-gray-900 text-white;
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-[#050505] font-sans text-white antialiased transition-colors duration-500;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(245, 197, 82, 0.12), transparent 30rem),
+      radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.08), transparent 24rem),
+      #050505;
+  }
+
+  body::selection {
+    @apply bg-amber-300 text-black;
+  }
+
+  img {
+    @apply select-none;
   }
 }
 
 @layer utilities {
+  .luxury-shell {
+    @apply mx-auto w-full max-w-[1500px] px-4 sm:px-6 lg:px-8;
+  }
+
+  .luxury-border {
+    @apply border border-white/10;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
   .glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-lg dark:bg-black/50 dark:border-white/10;
+    @apply border border-white/10 bg-white/[0.065] shadow-2xl shadow-black/30 backdrop-blur-2xl;
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#FFD700] to-[#FF3B3B];
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-yellow-500 to-orange-200;
+  }
+
+  .gold-ring {
+    box-shadow: 0 0 0 1px rgba(245, 197, 82, 0.22), 0 24px 80px rgba(245, 197, 82, 0.12);
+  }
+
+  .shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+    background-size: 220% 100%;
+    animation: shimmer 2.4s linear infinite;
+  }
+
+  .floating-particle {
+    animation: floatParticle 10s ease-in-out infinite;
   }
 
   .no-scrollbar::-webkit-scrollbar {
@@ -80,4 +122,14 @@
   .gold-phone-container .country.highlight {
     background: rgb(245 158 11 / 0.22);
   }
+}
+
+@keyframes shimmer {
+  0% { background-position: 220% 0; }
+  100% { background-position: -220% 0; }
+}
+
+@keyframes floatParticle {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.28; }
+  50% { transform: translate3d(18px, -28px, 0) scale(1.12); opacity: 0.7; }
 }

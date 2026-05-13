@@ -52,7 +52,7 @@ const FilterSidebar = ({
       <div className="relative space-y-6">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-amber-600 dark:text-amber-200">MarketX</p>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-amber-600 dark:text-amber-200">GoldMarket</p>
             <h2 className="mt-1 flex items-center gap-2 text-xl font-black text-gray-950 dark:text-white">
               <Filter className="h-5 w-5" /> Filters
             </h2>

@@ -131,7 +131,7 @@ const Chatbot = () => {
                   <span className="font-black text-lg">AI</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm">MarketX Assistant</h3>
+                  <h3 className="font-bold text-sm">GoldMarket Assistant</h3>
                   <p className="text-xs text-white/80 flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Online
                   </p>

@@ -7,8 +7,88 @@
       "password": "$2a$10$QOJHSrX/Cmr96.cG81qr.u.WMp7cUoAi.rm3Q2m1wysAb3yHS49.q",
       "role": "buyer",
       "createdAt": "2026-05-09T04:31:24.783Z"
+    },
+    {
+      "id": "mock_1778685696567",
+      "_id": "mock_1778685696567",
+      "name": "System Admin",
+      "email": "admin@goldmarket.com",
+      "password": "$2a$10$CPI8scQslmeKMYbLY34OfOaMwXsczR0cY.tmzc3vp27SSAfJfVAn6",
+      "role": "admin",
+      "isVerified": true,
+      "createdAt": "2026-05-13T15:21:36.567Z",
+      "updatedAt": "2026-05-13T15:21:36.568Z"
     }
   ],
-  "products": [],
+  "products": [
+    {
+      "id": "mock_1778686028255",
+      "_id": "mock_1778686028255",
+      "name": "Premium Leather Watch",
+      "description": "Classic luxury timepiece with genuine leather strap and sapphire crystal.",
+      "price": 299,
+      "category": "Watches",
+      "images": [
+        "https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&w=800&q=80"
+      ],
+      "stock": 10,
+      "brand": "Lusso",
+      "rating": 4.8,
+      "reviews": 24,
+      "createdAt": "2026-05-13T15:27:08.255Z",
+      "updatedAt": "2026-05-13T15:27:08.256Z"
+    },
+    {
+      "id": "mock_1778686028257",
+      "_id": "mock_1778686028257",
+      "name": "Noise-Cancelling Wireless Headphones",
+      "description": "Experience pure sound with advanced active noise cancellation technology.",
+      "price": 199,
+      "category": "Electronics",
+      "images": [
+        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80"
+      ],
+      "stock": 50,
+      "brand": "Sonic",
+      "rating": 4.5,
+      "reviews": 120,
+      "createdAt": "2026-05-13T15:27:08.257Z",
+      "updatedAt": "2026-05-13T15:27:08.258Z"
+    },
+    {
+      "id": "mock_1778686028259",
+      "_id": "mock_1778686028259",
+      "name": "Designer Silk Scarf",
+      "description": "Elegant 100% pure silk scarf with hand-rolled edges.",
+      "price": 85,
+      "category": "Accessories",
+      "images": [
+        "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80"
+      ],
+      "stock": 15,
+      "brand": "Aura",
+      "rating": 4.9,
+      "reviews": 45,
+      "createdAt": "2026-05-13T15:27:08.259Z",
+      "updatedAt": "2026-05-13T15:27:08.259Z"
+    },
+    {
+      "id": "mock_1778686028260",
+      "_id": "mock_1778686028260",
+      "name": "Minimalist Floor Lamp",
+      "description": "Sleek modern design with adjustable brightness and warm lighting.",
+      "price": 145,
+      "category": "Home Decor",
+      "images": [
+        "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&w=800&q=80"
+      ],
+      "stock": 20,
+      "brand": "Lume",
+      "rating": 4.7,
+      "reviews": 32,
+      "createdAt": "2026-05-13T15:27:08.260Z",
+      "updatedAt": "2026-05-13T15:27:08.260Z"
+    }
+  ],
   "carts": []
 }

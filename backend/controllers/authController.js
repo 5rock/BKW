@@ -1,7 +1,12 @@
 const crypto = require('crypto');
 const validator = require('validator');
 const User = require('../models/User');
+const { isMockMode } = require('../utils/connectDB');
+const { mockModel } = require('../utils/db');
 const { resolveRole } = require('../utils/roleResolver');
+
+const MockUser = mockModel('users');
+const bcrypt = require('bcryptjs');
 const { signAccessToken, signRefreshToken, verifyToken } = require('../utils/tokenUtils');
 const { verifyFirebaseToken } = require('../utils/firebaseAdmin');
 
@@ -44,7 +49,9 @@ const register = async (req, res, next) => {
     const phone = normalizePhone(req.body.phone);
     const { password } = req.body;
 
-    const existing = await User.findOne({
+    const Model = isMockMode() ? MockUser : User;
+
+    const existing = await Model.findOne({
       $or: [{ email }, ...(phone ? [{ phone }] : [])],
     });
 
@@ -56,7 +63,7 @@ const register = async (req, res, next) => {
       return res.status(409).json({ message: 'An account with this mobile number already exists' });
     }
 
-    const user = await User.create({
+    const user = await Model.create({
       name,
       email,
       phone,
@@ -80,11 +87,21 @@ const login = async (req, res, next) => {
     const isEmail = validator.isEmail(identifier);
     const phone = normalizePhone(identifier);
 
-    const user = await User.findOne(
-      isEmail ? { email: identifier.toLowerCase() } : { phone }
-    ).select('+password');
+    const Model = isMockMode() ? MockUser : User;
 
-    if (!user || !(await user.comparePassword(password))) {
+    const user = isMockMode()
+      ? await MockUser.findOne({ email: identifier.toLowerCase() })
+      : await User.findOne(isEmail ? { email: identifier.toLowerCase() } : { phone }).select('+password');
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const isValid = isMockMode()
+      ? await bcrypt.compare(password, user.password)
+      : await user.comparePassword(password);
+
+    if (!isValid) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 

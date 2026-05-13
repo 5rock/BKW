@@ -1,25 +1,20 @@
-/**
- * userController.js  (refactored)
- *
- * Handles user profile operations only.
- * Authentication (register/login) has moved to authController.js.
- *
- * GET  /api/users/me          — get own profile
- * PUT  /api/users/me          — update own profile (name, avatar)
- */
+const User = require('../models/User');
+const { isMockMode } = require('../utils/connectDB');
+const { mockModel } = require('../utils/db');
 
-const { readDB, writeDB } = require('../utils/db');
+const MockUser = mockModel('users');
 
 /** GET /api/users/me */
-const getMe = (req, res) => {
+const getMe = async (req, res) => {
   try {
-    const db = readDB();
-    const user = db.users.find((u) => u.id === req.user.id);
+    const Model = isMockMode() ? MockUser : User;
+    const user = await Model.findById(req.user.id);
+    
     if (!user) return res.status(404).json({ message: 'User not found' });
     if (user.isBlocked) return res.status(403).json({ message: 'Account suspended' });
 
     res.json({
-      id: user.id,
+      id: user.id || user._id,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -38,20 +33,25 @@ const getMe = (req, res) => {
 };
 
 /** PUT /api/users/me */
-const updateMe = (req, res) => {
+const updateMe = async (req, res) => {
   try {
     const { name, avatar } = req.body;
-    const db = readDB();
-    const idx = db.users.findIndex((u) => u.id === req.user.id);
-    if (idx === -1) return res.status(404).json({ message: 'User not found' });
+    const Model = isMockMode() ? MockUser : User;
+    const user = await Model.findById(req.user.id);
 
-    // Only allow updating safe fields — not role/isAdmin/isSeller
-    if (name) db.users[idx].name = name.trim();
-    if (avatar) db.users[idx].avatar = avatar;
-    db.users[idx].updatedAt = new Date().toISOString();
-    writeDB(db);
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
-    res.json({ message: 'Profile updated', user: db.users[idx] });
+    // Only allow updating safe fields
+    if (name) user.name = name.trim();
+    if (avatar) user.avatar = avatar;
+    
+    if (isMockMode()) {
+      await MockUser.save(user);
+    } else {
+      await user.save();
+    }
+
+    res.json({ message: 'Profile updated', user });
   } catch (err) {
     console.error('updateMe error:', err);
     res.status(500).json({ message: 'Server error' });

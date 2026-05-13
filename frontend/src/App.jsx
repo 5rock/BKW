@@ -17,6 +17,10 @@ const CartPage = lazy(() => import('./pages/CartPage'));
 const SellerDashboard = lazy(() => import('./pages/SellerDashboard'));
 const ProductUploadPage = lazy(() => import('./pages/seller/ProductUploadPage'));
 const WishlistPage = lazy(() => import('./pages/products/WishlistPage'));
+const About = lazy(() => import('./pages/About'));
+const ShippingInfo = lazy(() => import('./pages/ShippingInfo'));
+const Returns = lazy(() => import('./pages/Returns'));
+const Contact = lazy(() => import('./pages/Contact'));
 
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const SignupPage = lazy(() => import('./pages/auth/SignupPage'));
@@ -25,7 +29,7 @@ const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'));
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
 
 const PageLoader = () => (
-  <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-950">
+  <div className="flex min-h-screen items-center justify-center bg-[#050505]">
     <div className="flex flex-col items-center gap-3">
       <div className="h-10 w-10 animate-spin rounded-full border-4 border-amber-400 border-t-transparent" />
       <p className="text-sm text-gray-400">Loading...</p>
@@ -34,7 +38,7 @@ const PageLoader = () => (
 );
 
 const Layout = ({ children }) => (
-  <div className="flex min-h-screen flex-col">
+  <div className="flex min-h-screen flex-col bg-[#050505] text-white">
     <Navbar />
     <main className="flex-1">{children}</main>
     <Footer />
@@ -45,9 +49,9 @@ const Layout = ({ children }) => (
 const NotFound = () => (
   <Layout>
     <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="text-5xl font-black text-gray-300 dark:text-gray-600">404</h1>
-      <p className="text-lg text-gray-500 dark:text-gray-400">This page does not exist.</p>
-      <Link to="/" className="rounded-full bg-amber-500 px-6 py-3 font-bold text-white transition-colors hover:bg-amber-600">
+      <h1 className="text-5xl font-black text-white">404</h1>
+      <p className="text-lg text-white/55">This page does not exist.</p>
+      <Link to="/" className="rounded-full bg-amber-300 px-6 py-3 font-black text-black transition-colors hover:bg-amber-200">
         Back to Home
       </Link>
     </div>
@@ -75,6 +79,10 @@ function App() {
               <Route path="/products/:id" element={<Layout><ProductDetailsPage /></Layout>} />
               <Route path="/cart" element={<Layout><CartPage /></Layout>} />
               <Route path="/wishlist" element={<Layout><WishlistPage /></Layout>} />
+              <Route path="/about" element={<Layout><About /></Layout>} />
+              <Route path="/shipping-info" element={<Layout><ShippingInfo /></Layout>} />
+              <Route path="/returns" element={<Layout><Returns /></Layout>} />
+              <Route path="/contact" element={<Layout><Contact /></Layout>} />
 
               <Route
                 path="/seller"

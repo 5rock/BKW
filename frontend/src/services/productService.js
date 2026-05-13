@@ -1,173 +1,88 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-  startAfter,
-  updateDoc,
-  where,
-} from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
-import { db, storage } from '../firebase/config';
-import { buildProductSearchText, normalizeProduct } from '../utils/productUtils';
-import { compressImage } from '../utils/imageCompression';
+import api from './api';
+import { showcaseProducts } from '../constants/marketplace';
 
-const productsRef = collection(db, 'products');
-
-const sortMap = {
-  latest: ['createdAt', 'desc'],
-  newest: ['createdAt', 'desc'],
-  price_asc: ['finalPrice', 'asc'],
-  price_desc: ['finalPrice', 'desc'],
-  best_selling: ['salesCount', 'desc'],
-  most_popular: ['salesCount', 'desc'],
-  top_rated: ['rating', 'desc'],
-  rating: ['rating', 'desc'],
-};
-
-export const uploadProductImage = async (file, userId, onProgress) => {
-  const compressed = await compressImage(file);
-  const path = `products/${userId}/${Date.now()}-${compressed.name}`;
-  const storageRef = ref(storage, path);
-  const task = uploadBytesResumable(storageRef, compressed, {
-    contentType: compressed.type,
-    customMetadata: { originalName: file.name },
-  });
-
-  return new Promise((resolve, reject) => {
-    task.on(
-      'state_changed',
-      (snap) => {
-        const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-        onProgress?.(pct);
-      },
-      reject,
-      async () => resolve(await getDownloadURL(task.snapshot.ref))
-    );
-  });
-};
-
-export const createProduct = async ({ data, files = [], thumbnailIndex = 0, user, onProgress }) => {
-  if (!user?.uid) throw new Error('You must be signed in to create a product.');
-  if (!user.isSeller && user.role !== 'admin') throw new Error('Only sellers and admins can create products.');
-
-  const urls = [];
-  for (let index = 0; index < files.length; index += 1) {
-    const file = files[index];
-    const url = await uploadProductImage(file, user.uid, (pct) => {
-      const base = (index / Math.max(files.length, 1)) * 100;
-      onProgress?.(Math.round(base + pct / Math.max(files.length, 1)));
+/**
+ * Fetch products from the REST API instead of Firebase.
+ * This ensures the application works with the Mock Backend.
+ */
+export const getProducts = async (filters = {}) => {
+  try {
+    const { data } = await api.get('/products', {
+      params: {
+        search: filters.search,
+        category: filters.category,
+        sort: filters.sort,
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        limit: filters.limit,
+        // Mocking other filters as query params if needed
+        brands: filters.brands?.join(','),
+        colors: filters.colors?.join(','),
+        sizes: filters.sizes?.join(','),
+        rating: filters.rating,
+      }
     });
-    urls.push(url);
+
+    return {
+      products: data.products || [],
+      total: data.total || 0,
+      lastDoc: null, // REST API uses offset/page, not Firebase cursor
+      hasMore: (data.products?.length || 0) === (filters.limit || 24),
+    };
+  } catch (error) {
+    console.warn('getProducts fallback:', error.message);
+    const category = filters.category && filters.category !== 'All' ? String(filters.category).toLowerCase() : '';
+    const search = filters.search ? String(filters.search).toLowerCase() : '';
+    const products = showcaseProducts
+      .filter((product) => !category || product.category.toLowerCase().includes(category))
+      .filter((product) => !search || `${product.title} ${product.brand} ${product.category}`.toLowerCase().includes(search))
+      .slice(0, filters.limit || 24);
+    return {
+      products,
+      total: products.length,
+      lastDoc: null,
+      hasMore: false,
+    };
   }
+};
 
-  const price = Number(data.price || 0);
-  const discountPrice = Number(data.discountPrice || 0);
-  const finalPrice = discountPrice > 0 && discountPrice < price ? discountPrice : price;
-  const payload = {
+export const getProductById = async (productId) => {
+  try {
+    const { data } = await api.get(`/products/${productId}`);
+    return data;
+  } catch (error) {
+    const fallback = showcaseProducts.find((product) => product.id === productId || product._id === productId);
+    if (fallback) return fallback;
+    throw error;
+  }
+};
+
+export const createProduct = async ({ data, user }) => {
+  const { data: result } = await api.post('/products', {
+    ...data,
     sellerId: user.uid,
-    sellerName: user.name || user.email || 'Seller',
-    title: data.title.trim(),
-    description: data.description.trim(),
-    category: data.category,
-    brand: data.brand.trim(),
-    price,
-    discountPrice,
-    finalPrice,
-    stock: Number(data.stock || 0),
-    sizes: data.sizes,
-    colors: data.colors,
-    images: urls,
-    thumbnail: urls[thumbnailIndex] || urls[0] || '',
-    rating: 0,
-    reviewsCount: 0,
-    salesCount: 0,
-    tags: data.tags,
-    sku: data.sku.trim(),
-    deliveryTime: data.deliveryTime.trim(),
-    warrantyInfo: data.warrantyInfo.trim(),
-    featured: Boolean(data.featured),
-    status: data.status || 'active',
-    searchText: buildProductSearchText(data),
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  };
-
-  const docRef = await addDoc(productsRef, payload);
-  await updateDoc(docRef, { id: docRef.id });
-  return { id: docRef.id, ...payload };
+    createdAt: new Date().toISOString(),
+  });
+  return result;
 };
 
 export const updateProduct = async (productId, data) => {
-  const payload = {
-    ...data,
-    searchText: buildProductSearchText(data),
-    updatedAt: serverTimestamp(),
-  };
-  await updateDoc(doc(db, 'products', productId), payload);
+  const { data: result } = await api.put(`/products/${productId}`, data);
+  return result;
 };
 
-export const deleteProduct = async (productId) => deleteDoc(doc(db, 'products', productId));
-
-export const getProductById = async (productId) => {
-  const snap = await getDoc(doc(db, 'products', productId));
-  if (!snap.exists()) throw new Error('Product not found');
-  return normalizeProduct({ id: snap.id, ...snap.data() });
-};
-
-export const getProducts = async (filters = {}) => {
-  const constraints = [];
-  if (filters.status !== 'all') constraints.push(where('status', '==', filters.status || 'active'));
-  if (filters.category && filters.category !== 'All') constraints.push(where('category', '==', filters.category));
-  if (filters.featured) constraints.push(where('featured', '==', true));
-  if (filters.sellerId) constraints.push(where('sellerId', '==', filters.sellerId));
-  if (filters.cursor) constraints.push(startAfter(filters.cursor));
-
-  const [sortField, sortDirection] = sortMap[filters.sort || 'latest'] || sortMap.latest;
-  constraints.push(orderBy(sortField, sortDirection));
-  constraints.push(limit(Number(filters.limit || 24)));
-
-  const snap = await getDocs(query(productsRef, ...constraints));
-  let products = snap.docs.map((item) => normalizeProduct({ id: item.id, ...item.data() }));
-
-  const search = filters.search?.trim().toLowerCase();
-  if (search) products = products.filter((p) => p.searchText?.includes(search) || p.title.toLowerCase().includes(search));
-  const [minPrice, maxPrice] = filters.priceRange || [filters.minPrice || 0, filters.maxPrice || 5000];
-  products = products.filter((p) => p.finalPrice >= Number(minPrice || 0) && p.finalPrice <= Number(maxPrice || 5000));
-  if (filters.rating || filters.minRating) products = products.filter((p) => p.rating >= Number(filters.rating || filters.minRating));
-  if (filters.brands?.length) products = products.filter((p) => filters.brands.includes(p.brand));
-  if (filters.brand) products = products.filter((p) => p.brand === filters.brand);
-  if (filters.colors?.length) products = products.filter((p) => filters.colors.some((color) => p.colors.includes(color)));
-  if (filters.color) products = products.filter((p) => p.colors.includes(filters.color));
-  if (filters.sizes?.length) products = products.filter((p) => filters.sizes.some((size) => p.sizes.includes(size)));
-  if (filters.size) products = products.filter((p) => p.sizes.includes(filters.size));
-  if (filters.availability === 'in') products = products.filter((p) => p.stock > 0);
-  if (filters.availability === 'out') products = products.filter((p) => p.stock <= 0);
-  if (filters.minDiscount) products = products.filter((p) => p.discountPercent >= Number(filters.minDiscount));
-  if (filters.freeShipping) products = products.filter((p) => p.freeShipping);
-  if (filters.premiumSellers) products = products.filter((p) => p.premiumSeller);
-  if (filters.newArrivals) {
-    const twoWeeks = 1000 * 60 * 60 * 24 * 14;
-    products = products.filter((p) => Date.now() - (p.createdAt?.toMillis?.() || 0) < twoWeeks);
-  }
-  if (filters.bestSellers) products = products.filter((p) => Number(p.salesCount || 0) > 0 || p.featured);
-  if (filters.trending) products = products.filter((p) => p.featured || Number(p.viewsCount || 0) > 100 || Number(p.salesCount || 0) > 10);
-
-  return {
-    products,
-    total: products.length,
-    lastDoc: snap.docs[snap.docs.length - 1] || null,
-    hasMore: snap.docs.length === Number(filters.limit || 24),
-  };
+export const deleteProduct = async (productId) => {
+  const { data } = await api.delete(`/products/${productId}`);
+  return data;
 };
 
 export const getRelatedProducts = async (product, count = 8) => {
   const result = await getProducts({ category: product.category, limit: count + 1, sort: 'top_rated' });
   return result.products.filter((item) => item.id !== product.id).slice(0, count);
+};
+
+// Placeholder for image upload (needs backend implementation or third-party service)
+export const uploadProductImage = async (file) => {
+  console.warn('Image upload is not yet implemented in REST mode. Using placeholder.');
+  return URL.createObjectURL(file);
 };

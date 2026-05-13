@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const getRoleRedirect = useCallback((role) => {
-    if (role === 'admin') return '/admin';
+    if (role === 'admin') return '/seller'; // Admin also uses seller dashboard for now
     if (role === 'seller') return '/seller';
     return '/';
   }, []);
