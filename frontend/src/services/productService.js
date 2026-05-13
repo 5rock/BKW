@@ -26,6 +26,7 @@ const sortMap = {
   price_asc: ['finalPrice', 'asc'],
   price_desc: ['finalPrice', 'desc'],
   best_selling: ['salesCount', 'desc'],
+  most_popular: ['salesCount', 'desc'],
   top_rated: ['rating', 'desc'],
   rating: ['rating', 'desc'],
 };
@@ -137,11 +138,26 @@ export const getProducts = async (filters = {}) => {
 
   const search = filters.search?.trim().toLowerCase();
   if (search) products = products.filter((p) => p.searchText?.includes(search) || p.title.toLowerCase().includes(search));
-  if (filters.maxPrice) products = products.filter((p) => p.finalPrice <= Number(filters.maxPrice));
-  if (filters.minRating) products = products.filter((p) => p.rating >= Number(filters.minRating));
+  const [minPrice, maxPrice] = filters.priceRange || [filters.minPrice || 0, filters.maxPrice || 5000];
+  products = products.filter((p) => p.finalPrice >= Number(minPrice || 0) && p.finalPrice <= Number(maxPrice || 5000));
+  if (filters.rating || filters.minRating) products = products.filter((p) => p.rating >= Number(filters.rating || filters.minRating));
+  if (filters.brands?.length) products = products.filter((p) => filters.brands.includes(p.brand));
   if (filters.brand) products = products.filter((p) => p.brand === filters.brand);
+  if (filters.colors?.length) products = products.filter((p) => filters.colors.some((color) => p.colors.includes(color)));
   if (filters.color) products = products.filter((p) => p.colors.includes(filters.color));
+  if (filters.sizes?.length) products = products.filter((p) => filters.sizes.some((size) => p.sizes.includes(size)));
   if (filters.size) products = products.filter((p) => p.sizes.includes(filters.size));
+  if (filters.availability === 'in') products = products.filter((p) => p.stock > 0);
+  if (filters.availability === 'out') products = products.filter((p) => p.stock <= 0);
+  if (filters.minDiscount) products = products.filter((p) => p.discountPercent >= Number(filters.minDiscount));
+  if (filters.freeShipping) products = products.filter((p) => p.freeShipping);
+  if (filters.premiumSellers) products = products.filter((p) => p.premiumSeller);
+  if (filters.newArrivals) {
+    const twoWeeks = 1000 * 60 * 60 * 24 * 14;
+    products = products.filter((p) => Date.now() - (p.createdAt?.toMillis?.() || 0) < twoWeeks);
+  }
+  if (filters.bestSellers) products = products.filter((p) => Number(p.salesCount || 0) > 0 || p.featured);
+  if (filters.trending) products = products.filter((p) => p.featured || Number(p.viewsCount || 0) > 100 || Number(p.salesCount || 0) > 10);
 
   return {
     products,

@@ -1,34 +1,62 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import ProductCard from '../../components/products/ProductCard';
-import ProductFilters from '../../components/filters/ProductFilters';
+import FilterSidebar from '../../components/filters/FilterSidebar';
+import MobileFilterDrawer from '../../components/filters/MobileFilterDrawer';
 import { PageSectionSkeleton } from '../../components/ui/LoadingSkeleton';
 import { getProducts } from '../../services/productService';
 import { SORT_OPTIONS } from '../../utils/productUtils';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useFilters } from '../../hooks/useFilters';
+import { useFilterStore } from '../../store/filterStore';
 
-const defaultFilters = {
-  category: 'All',
-  maxPrice: 5000,
-  minRating: '',
-  brand: '',
-  color: '',
-  size: '',
-  sort: 'latest',
+const increment = (target, key) => {
+  if (!key) return;
+  target[key] = (target[key] || 0) + 1;
+};
+
+const buildFacets = (products) => {
+  const facets = {
+    total: products.length,
+    categories: { All: products.length },
+    brands: {},
+    colors: {},
+    sizes: {},
+    ratings: {},
+    discounts: {},
+  };
+
+  products.forEach((product) => {
+    increment(facets.categories, product.category);
+    increment(facets.brands, product.brand);
+    product.colors?.forEach((color) => increment(facets.colors, color));
+    product.sizes?.forEach((size) => increment(facets.sizes, size));
+    [1, 2, 3, 4, 5].forEach((rating) => {
+      if (product.rating >= rating) increment(facets.ratings, rating);
+    });
+    [10, 20, 30, 40, 50, 60].forEach((discount) => {
+      if (product.discountPercent >= discount) increment(facets.discounts, discount);
+    });
+  });
+
+  return facets;
 };
 
 const ProductListingPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { category: routeCategory } = useParams();
-  const [filters, setFilters] = useState({
-    ...defaultFilters,
-    category: routeCategory ? decodeURIComponent(routeCategory) : searchParams.get('category') || 'All',
-    sort: searchParams.get('sort') || 'latest',
-  });
+  const filters = useFilterStore((state) => state.filters);
+  const setFilter = useFilterStore((state) => state.setFilter);
+  const setFilters = useFilterStore((state) => state.setFilters);
+  const toggleArrayFilter = useFilterStore((state) => state.toggleArrayFilter);
+  const toggleBooleanFilter = useFilterStore((state) => state.toggleBooleanFilter);
+  const clearFilter = useFilterStore((state) => state.clearFilter);
+  const resetFilterStore = useFilterStore((state) => state.resetFilters);
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const debouncedSearch = useDebounce(search, 350);
+  const debouncedFilters = useDebounce(filters, 250);
   const [products, setProducts] = useState([]);
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
@@ -36,14 +64,22 @@ const ProductListingPage = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [mobileFilters, setMobileFilters] = useState(false);
+  const { appliedChips, activeCount } = useFilters(filters);
 
-  const queryFilters = useMemo(() => ({ ...filters, search: debouncedSearch, limit: 20 }), [filters, debouncedSearch]);
+  const queryFilters = useMemo(() => ({ ...debouncedFilters, search: debouncedSearch, limit: 24 }), [debouncedFilters, debouncedSearch]);
+  const facets = useMemo(() => buildFacets(products), [products]);
+
+  useEffect(() => {
+    const category = routeCategory ? decodeURIComponent(routeCategory) : searchParams.get('category') || 'All';
+    const sort = searchParams.get('sort') || 'latest';
+    setFilters({ category, sort });
+  }, [routeCategory]);
 
   const syncUrl = () => {
     const params = {};
     if (debouncedSearch) params.search = debouncedSearch;
-    if (filters.category !== 'All') params.category = filters.category;
-    if (filters.sort !== 'latest') params.sort = filters.sort;
+    if (queryFilters.category !== 'All') params.category = queryFilters.category;
+    if (queryFilters.sort !== 'latest') params.sort = queryFilters.sort;
     setSearchParams(params, { replace: true });
   };
 
@@ -70,15 +106,25 @@ const ProductListingPage = () => {
   }, [queryFilters]);
 
   const resetFilters = () => {
-    setFilters(defaultFilters);
+    resetFilterStore();
     setSearch('');
   };
 
+  const filterProps = {
+    filters,
+    setFilter,
+    toggleArrayFilter,
+    toggleBooleanFilter,
+    onReset: resetFilters,
+    facets,
+    isLoading: loading,
+  };
+
   return (
-    <div className="min-h-screen bg-background-light pt-28 pb-20 dark:bg-background-dark">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(212,175,55,0.14),transparent_34%),linear-gradient(180deg,#fff,#f8fafc)] pt-28 pb-20 dark:bg-[radial-gradient(circle_at_top_left,rgba(212,175,55,0.12),transparent_34%),linear-gradient(180deg,#050505,#111827)]">
       <main className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 overflow-hidden rounded-3xl bg-gradient-to-r from-gray-950 via-gray-900 to-red-950 p-6 text-white shadow-2xl md:p-10">
-          <p className="text-sm font-black uppercase tracking-[0.25em] text-brand-yellow">Marketplace</p>
+        <div className="mb-8 overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-r from-gray-950 via-black to-[#302406] p-6 text-white shadow-2xl shadow-black/20 md:p-10">
+          <p className="text-sm font-black uppercase tracking-[0.25em] text-brand-yellow">GoldMarket</p>
           <div className="mt-3 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="text-3xl font-black tracking-tight md:text-5xl">
@@ -98,26 +144,27 @@ const ProductListingPage = () => {
           </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[290px_1fr]">
+        <div className="grid gap-8 lg:grid-cols-[340px_1fr]">
           <aside className="hidden lg:block">
-            <div className="sticky top-28 rounded-3xl border border-gray-100 bg-white/85 p-6 shadow-sm backdrop-blur-xl dark:border-gray-800 dark:bg-gray-900/80">
-              <ProductFilters filters={filters} setFilters={setFilters} onReset={resetFilters} />
+            <div className="sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto pr-1 no-scrollbar">
+              <FilterSidebar {...filterProps} />
             </div>
           </aside>
 
           <section>
-            <div className="mb-6 flex flex-col justify-between gap-3 rounded-3xl border border-gray-100 bg-white/85 p-4 shadow-sm backdrop-blur-xl dark:border-gray-800 dark:bg-gray-900/80 sm:flex-row sm:items-center">
+            <div className="mb-4 flex flex-col justify-between gap-3 rounded-[1.5rem] border border-white/70 bg-white/85 p-4 shadow-xl shadow-black/5 backdrop-blur-xl dark:border-white/10 dark:bg-gray-950/70 sm:flex-row sm:items-center">
               <div>
                 <p className="text-sm font-bold text-text-muted-light dark:text-text-muted-dark">{loading ? 'Loading products...' : `${products.length} products shown`}</p>
                 <h2 className="text-xl font-black text-text-light dark:text-white">Curated Results</h2>
               </div>
               <div className="flex gap-3">
-                <button onClick={() => setMobileFilters((v) => !v)} className="rounded-2xl bg-gray-100 p-3 lg:hidden dark:bg-gray-800">
+                <button onClick={() => setMobileFilters(true)} className="relative rounded-2xl bg-gray-100 p-3 lg:hidden dark:bg-gray-800">
                   <SlidersHorizontal className="h-5 w-5 dark:text-white" />
+                  {activeCount > 0 && <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-brand-yellow text-[10px] font-black text-gray-950">{activeCount}</span>}
                 </button>
                 <select
                   value={filters.sort}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, sort: e.target.value }))}
+                  onChange={(e) => setFilter('sort', e.target.value)}
                   className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-text-light outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   {SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
@@ -126,11 +173,22 @@ const ProductListingPage = () => {
             </div>
 
             <AnimatePresence>
-              {mobileFilters && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mb-6 overflow-hidden lg:hidden">
-                  <div className="rounded-3xl border border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-                    <ProductFilters filters={filters} setFilters={setFilters} onReset={resetFilters} />
-                  </div>
+              {appliedChips.length > 0 && (
+                <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="mb-6 flex flex-wrap gap-2">
+                  {appliedChips.map((chip) => (
+                    <button
+                      key={`${chip.key}-${chip.value || chip.label}`}
+                      type="button"
+                      onClick={() => clearFilter(chip.key, chip.value)}
+                      className="flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-black text-amber-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-100 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100"
+                    >
+                      {chip.label}
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  ))}
+                  <button type="button" onClick={resetFilters} className="rounded-full px-3 py-2 text-xs font-black text-gray-500 hover:text-brand-red dark:text-gray-300">
+                    Reset all
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -155,7 +213,9 @@ const ProductListingPage = () => {
               <>
                 <motion.div layout className="grid grid-cols-2 gap-4 sm:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
                   {products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                    <motion.div key={product.id} layout initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
+                      <ProductCard product={product} />
+                    </motion.div>
                   ))}
                 </motion.div>
                 {hasMore && (
@@ -170,6 +230,7 @@ const ProductListingPage = () => {
           </section>
         </div>
       </main>
+      <MobileFilterDrawer open={mobileFilters} onClose={() => setMobileFilters(false)} resultCount={products.length} {...filterProps} />
     </div>
   );
 };

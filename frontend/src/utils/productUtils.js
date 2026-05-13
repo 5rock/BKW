@@ -14,8 +14,8 @@ export const SORT_OPTIONS = [
   { value: 'latest', label: 'Latest' },
   { value: 'price_asc', label: 'Price Low to High' },
   { value: 'price_desc', label: 'Price High to Low' },
-  { value: 'best_selling', label: 'Best Selling' },
-  { value: 'top_rated', label: 'Top Rated' },
+  { value: 'top_rated', label: 'Best Rated' },
+  { value: 'most_popular', label: 'Most Popular' },
 ];
 
 export const money = (value = 0) =>
@@ -50,6 +50,10 @@ export const normalizeProduct = (product = {}) => {
     tags: Array.isArray(product.tags) ? product.tags : splitList(product.tags),
     sizes: Array.isArray(product.sizes) ? product.sizes : splitList(product.sizes),
     colors: Array.isArray(product.colors) ? product.colors : splitList(product.colors),
+    salesCount: Number(product.salesCount || 0),
+    viewsCount: Number(product.viewsCount || product.views || 0),
+    freeShipping: Boolean(product.freeShipping || String(product.deliveryTime || '').toLowerCase().includes('free')),
+    premiumSeller: Boolean(product.premiumSeller || product.verifiedSeller || product.sellerVerified),
   };
 };
 
