@@ -53,11 +53,12 @@ export const getUserProfile = async (uid) => {
  * Create a new user profile document in Firestore.
  * Used on registration and first OAuth login.
  */
-export const createUserProfile = async ({ uid, name, email, avatar, provider = 'email', emailVerified = false }) => {
+export const createUserProfile = async ({ uid, name, email, phone, avatar, provider = 'email', emailVerified = false }) => {
   const role = resolveRole(email);
   const data = {
     name:          name || email.split('@')[0],
     email:         email.toLowerCase(),
+    phone:         phone || null,
     role,                          // set by backend logic — not user input
     isAdmin:       role === 'admin',
     isSeller:      role === 'admin' || role === 'seller',

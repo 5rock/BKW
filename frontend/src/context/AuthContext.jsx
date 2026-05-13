@@ -1,193 +1,153 @@
 /* eslint-disable react-refresh/only-export-components */
-/**
- * AuthContext.jsx — Firebase-first complete rewrite
- *
- * Architecture:
- *  • Firebase Auth is the SINGLE source of truth for identity
- *  • Firestore stores the user profile + role (never from frontend input)
- *  • onAuthStateChanged drives all auth state reactively
- *  • Role-based flags: isAdmin, isSeller derived from Firestore doc
- */
-
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from 'react';
-import {
+  createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  sendPasswordResetEmail,
-  sendEmailVerification,
   updateProfile,
 } from 'firebase/auth';
-import { auth, googleProvider, githubProvider, facebookProvider } from '../firebase/config';
+import { auth } from '../firebase/config';
+import { createUserProfile, getOrCreateProfile, getUserProfile } from '../firebase/userService';
 import {
-  getUserProfile,
-  createUserProfile,
-  getOrCreateProfile,
-} from '../firebase/userService';
-import toast from 'react-hot-toast';
+  clearSession,
+  firebaseLogout,
+  getStoredUser,
+  loginWithFacebook,
+  loginWithGithub,
+  loginWithGoogle,
+  loginWithIdentifier,
+  logoutApi,
+  persistSession,
+  registerWithEmail,
+  sendFirebasePasswordReset,
+} from '../services/authService';
 
 const AuthContext = createContext(null);
 
+const isEmail = (value = '') => /\S+@\S+\.\S+/.test(value);
+
 export const AuthProvider = ({ children }) => {
-  const [userProfile, setUserProfile] = useState(null); // Firestore doc
-  const [firebaseUser, setFirebaseUser] = useState(null); // Firebase user obj
+  const [userProfile, setUserProfile] = useState(() => getStoredUser());
+  const [firebaseUser, setFirebaseUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ── Reactive auth state listener — runs once on mount
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       setFirebaseUser(fbUser);
       if (fbUser) {
-        try {
-          let profile = await getUserProfile(fbUser.uid);
-          // First-time OAuth user — auto-create Firestore doc
-          if (!profile) {
-            const provider = fbUser.providerData[0]?.providerId?.split('.')[0] || 'email';
-            profile = await createUserProfile({
-              uid:           fbUser.uid,
-              name:          fbUser.displayName || fbUser.email.split('@')[0],
-              email:         fbUser.email,
-              avatar:        fbUser.photoURL || null,
-              provider,
-              emailVerified: fbUser.emailVerified,
-            });
-          }
-          setUserProfile(profile);
-        } catch (err) {
-          console.error('Auth state profile fetch failed:', err);
-          setUserProfile(null);
+        const profile = await getUserProfile(fbUser.uid);
+        if (profile) {
+          setUserProfile((current) => ({ ...current, ...profile }));
         }
-      } else {
-        setUserProfile(null);
       }
       setLoading(false);
     });
     return unsubscribe;
   }, []);
 
-  // ─── Helper: navigate by role (returns the path, page handles navigation)
   const getRoleRedirect = useCallback((role) => {
-    if (role === 'admin')  return '/admin';
+    if (role === 'admin') return '/admin';
     if (role === 'seller') return '/seller';
     return '/';
   }, []);
 
-  // ─── Email / Password Register
-  const register = async (name, email, password) => {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    // Set displayName in Firebase Auth
-    await updateProfile(cred.user, { displayName: name });
-    // Create Firestore profile (role resolved by backend logic in userService)
-    const profile = await createUserProfile({
-      uid:           cred.user.uid,
-      name,
-      email,
-      provider:      'email',
-      emailVerified: false,
-    });
-    // Send verification email
+  const register = useCallback(async ({ name, email, phone, password, remember = true }) => {
     try {
-      await sendEmailVerification(cred.user);
-    } catch {
-      // Verification email failures should not block account creation.
+      const firebaseCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(firebaseCredential.user, { displayName: name });
+      await createUserProfile({
+        uid: firebaseCredential.user.uid,
+        name,
+        email,
+        phone,
+        provider: 'email',
+        emailVerified: false,
+      });
+    } catch (error) {
+      if (!String(error?.code || '').includes('auth/email-already-in-use')) throw error;
     }
-    return { user: profile, redirect: getRoleRedirect(profile.role) };
-  };
 
-  // ─── Email / Password Login
-  const login = async (email, password) => {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    // Fetch fresh role from Firestore (not from token — Firestore is truth)
-    const profile = await getUserProfile(cred.user.uid);
-    return { user: profile, redirect: getRoleRedirect(profile?.role || 'customer') };
-  };
+    const { data } = await registerWithEmail({ name, email, phone, password });
+    persistSession(data, remember);
+    setUserProfile(data.user);
+    return { user: data.user, redirect: getRoleRedirect(data.user.role) };
+  }, [getRoleRedirect]);
 
-  // ─── Google OAuth
-  const signInWithGoogle = async () => {
-    const result  = await signInWithPopup(auth, googleProvider);
-    const profile = await getOrCreateProfile(result.user, 'google');
-    return { user: profile, redirect: getRoleRedirect(profile.role) };
-  };
+  const login = useCallback(async ({ identifier, password, remember = true }) => {
+    if (isEmail(identifier)) {
+      try {
+        await signInWithEmailAndPassword(auth, identifier, password);
+      } catch {
+        // Backend remains authoritative for legacy/mobile-ready accounts.
+      }
+    }
 
-  // ─── GitHub OAuth
-  const signInWithGithub = async () => {
-    const result  = await signInWithPopup(auth, githubProvider);
-    const profile = await getOrCreateProfile(result.user, 'github');
-    return { user: profile, redirect: getRoleRedirect(profile.role) };
-  };
+    const { data } = await loginWithIdentifier({ identifier, password });
+    persistSession(data, remember);
+    setUserProfile(data.user);
+    return { user: data.user, redirect: getRoleRedirect(data.user.role) };
+  }, [getRoleRedirect]);
 
-  // ─── Facebook OAuth
-  const signInWithFacebook = async () => {
-    const result  = await signInWithPopup(auth, facebookProvider);
-    const profile = await getOrCreateProfile(result.user, 'facebook');
-    return { user: profile, redirect: getRoleRedirect(profile.role) };
-  };
+  const handleOAuth = useCallback(async (provider) => {
+    const apiCall = {
+      google: loginWithGoogle,
+      facebook: loginWithFacebook,
+      github: loginWithGithub,
+    }[provider];
 
-  // ─── Password Reset
-  const sendPasswordReset = async (email) => sendPasswordResetEmail(auth, email);
+    const { data } = await apiCall();
+    const fbUser = auth.currentUser;
+    if (fbUser) await getOrCreateProfile(fbUser, provider);
+    persistSession(data, true);
+    setUserProfile(data.user);
+    return { user: data.user, redirect: getRoleRedirect(data.user.role) };
+  }, [getRoleRedirect]);
 
-  // ─── Resend email verification
-  const resendVerification = async () => {
-    if (auth.currentUser) await sendEmailVerification(auth.currentUser);
-  };
-
-  // ─── Logout
-  const logout = async () => {
-    await signOut(auth);
+  const logout = useCallback(async () => {
+    try {
+      await logoutApi();
+    } catch {
+      // Local sign-out should still succeed if the API is unreachable.
+    }
+    await firebaseLogout().catch(() => {});
+    clearSession();
     setUserProfile(null);
     setFirebaseUser(null);
-    toast.success('Signed out successfully');
-  };
+  }, []);
 
-  // ─── Derived permission flags — from Firestore doc only
-  const role     = userProfile?.role     || 'customer';
-  const isAdmin  = userProfile?.isAdmin  || role === 'admin';
-  const isSeller = userProfile?.isSeller || role === 'seller' || role === 'admin';
+  const sendPasswordReset = useCallback(async (email) => {
+    await Promise.allSettled([
+      sendFirebasePasswordReset(email),
+      import('../services/authService').then(({ forgotPassword }) => forgotPassword(email)),
+    ]);
+  }, []);
 
-  // ─── Normalize user object — same shape as before for Navbar/other components
-  const user = userProfile ? {
-    uid:           userProfile.uid,
-    name:          userProfile.name,
-    email:         userProfile.email,
+  const role = userProfile?.role || 'customer';
+  const value = useMemo(() => ({
+    user: userProfile ? {
+      ...userProfile,
+      uid: firebaseUser?.uid || userProfile.uid,
+      role,
+      isAdmin: userProfile.isAdmin || role === 'admin',
+      isSeller: userProfile.isSeller || role === 'seller' || role === 'admin',
+      emailVerified: firebaseUser?.emailVerified || userProfile.isVerified || false,
+    } : null,
+    firebaseUser,
+    loading,
     role,
-    isAdmin,
-    isSeller,
-    avatar:        userProfile.avatar || null,
-    emailVerified: firebaseUser?.emailVerified || userProfile.emailVerified || false,
-    isBlocked:     userProfile.isBlocked || false,
-  } : null;
+    isAdmin: role === 'admin',
+    isSeller: role === 'seller' || role === 'admin',
+    getRoleRedirect,
+    register,
+    login,
+    signInWithGoogle: () => handleOAuth('google'),
+    signInWithFacebook: () => handleOAuth('facebook'),
+    signInWithGithub: () => handleOAuth('github'),
+    sendPasswordReset,
+    logout,
+  }), [firebaseUser, getRoleRedirect, handleOAuth, loading, login, logout, register, role, sendPasswordReset, userProfile]);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        firebaseUser,
-        loading,
-        role,
-        isAdmin,
-        isSeller,
-        getRoleRedirect,
-        register,
-        login,
-        signInWithGoogle,
-        signInWithGithub,
-        signInWithFacebook,
-        sendPasswordReset,
-        resendVerification,
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

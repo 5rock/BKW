@@ -11,7 +11,7 @@ const api = axios.create({
 // ── Attach access token to every request
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('gm_access_token');
+    const token = localStorage.getItem('gm_access_token') || sessionStorage.getItem('gm_access_token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
@@ -53,24 +53,31 @@ api.interceptors.response.use(
       original._retry   = true;
       isRefreshing      = true;
 
-      const storedRefresh = localStorage.getItem('gm_refresh_token');
+      const storedRefresh = localStorage.getItem('gm_refresh_token') || sessionStorage.getItem('gm_refresh_token');
       if (!storedRefresh) {
         // No refresh token — force logout
-        localStorage.clear();
+        localStorage.removeItem('gm_access_token');
+        localStorage.removeItem('gm_refresh_token');
+        sessionStorage.removeItem('gm_access_token');
+        sessionStorage.removeItem('gm_refresh_token');
         window.location.href = '/login';
         return Promise.reject(error);
       }
 
       try {
         const { data } = await refreshAccessToken(storedRefresh);
-        localStorage.setItem('gm_access_token', data.accessToken);
+        const storage = localStorage.getItem('gm_refresh_token') ? localStorage : sessionStorage;
+        storage.setItem('gm_access_token', data.accessToken);
         api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
         processQueue(null, data.accessToken);
         original.headers.Authorization = `Bearer ${data.accessToken}`;
         return api(original);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.clear();
+        localStorage.removeItem('gm_access_token');
+        localStorage.removeItem('gm_refresh_token');
+        sessionStorage.removeItem('gm_access_token');
+        sessionStorage.removeItem('gm_refresh_token');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {

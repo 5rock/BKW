@@ -1,10 +1,3 @@
-/**
- * authService.js
- *
- * All authentication API calls to the backend.
- * This is the single source of truth for auth network requests.
- */
-
 import api from './api';
 import {
   signInWithPopup,
@@ -12,54 +5,65 @@ import {
   sendEmailVerification,
   signOut as firebaseSignOut,
 } from 'firebase/auth';
-import { auth, googleProvider, facebookProvider, githubProvider } from './firebase';
+import { auth, googleProvider, facebookProvider, githubProvider } from '../firebase/config';
 
-// ─── Email / Password ────────────────────────────────────────────────────────
+export const persistSession = ({ accessToken, refreshToken, user }, remember = true) => {
+  const storage = remember ? localStorage : sessionStorage;
+  localStorage.removeItem('gm_access_token');
+  localStorage.removeItem('gm_refresh_token');
+  sessionStorage.removeItem('gm_access_token');
+  sessionStorage.removeItem('gm_refresh_token');
 
-/** Register new user — sends only name/email/password — NO role */
-export const registerWithEmail = (name, email, password) =>
-  api.post('/auth/register', { name, email, password });
+  storage.setItem('gm_access_token', accessToken);
+  storage.setItem('gm_refresh_token', refreshToken);
+  storage.setItem('gm_user', JSON.stringify(user));
+};
 
-/** Login with email and password */
-export const loginWithEmail = (email, password) =>
-  api.post('/auth/login', { email, password });
+export const clearSession = () => {
+  ['gm_access_token', 'gm_refresh_token', 'gm_user'].forEach((key) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
+};
 
-/** Exchange a refresh token for a new access token */
+export const getStoredUser = () => {
+  const raw = localStorage.getItem('gm_user') || sessionStorage.getItem('gm_user');
+  return raw ? JSON.parse(raw) : null;
+};
+
+export const registerWithEmail = ({ name, email, phone, password }) =>
+  api.post('/auth/register', { name, email, phone, password });
+
+export const loginWithIdentifier = ({ identifier, password }) =>
+  api.post('/auth/login', { identifier, password });
+
 export const refreshAccessToken = (refreshToken) =>
   api.post('/auth/refresh', { refreshToken });
 
-/** Logout (clears server-side state if any) */
+export const forgotPassword = (email) =>
+  api.post('/auth/forgot-password', { email });
+
+export const resetPassword = ({ token, password, confirmPassword }) =>
+  api.patch(`/auth/reset-password/${token}`, { password, confirmPassword });
+
 export const logoutApi = () => api.post('/auth/logout');
 
-// ─── Firebase OAuth helpers ──────────────────────────────────────────────────
-
-/** Generic popup flow: open provider popup → get Firebase ID token → send to backend */
 const oAuthWithPopup = async (provider) => {
   const result = await signInWithPopup(auth, provider);
   const idToken = await result.user.getIdToken();
-  const providerName = provider.providerId.split('.')[0]; // 'google', 'facebook', 'github'
+  const providerName = provider.providerId.split('.')[0];
   return api.post('/auth/firebase', { idToken, provider: providerName });
 };
 
-export const loginWithGoogle   = () => oAuthWithPopup(googleProvider);
+export const loginWithGoogle = () => oAuthWithPopup(googleProvider);
 export const loginWithFacebook = () => oAuthWithPopup(facebookProvider);
-export const loginWithGithub   = () => oAuthWithPopup(githubProvider);
+export const loginWithGithub = () => oAuthWithPopup(githubProvider);
 
-// ─── Password management ─────────────────────────────────────────────────────
+export const sendFirebasePasswordReset = (email) => sendPasswordResetEmail(auth, email);
+export const sendPasswordReset = sendFirebasePasswordReset;
 
-/** Send Firebase password reset email */
-export const sendPasswordReset = (email) => sendPasswordResetEmail(auth, email);
-
-/** Resend email verification to current Firebase user */
 export const resendVerificationEmail = async () => {
-  const firebaseUser = auth.currentUser;
-  if (firebaseUser) await sendEmailVerification(firebaseUser);
+  if (auth.currentUser) await sendEmailVerification(auth.currentUser);
 };
 
-/** Firebase sign out (clears Firebase session) */
 export const firebaseLogout = () => firebaseSignOut(auth);
-
-// ─── Profile ─────────────────────────────────────────────────────────────────
-
-/** Fetch the authenticated user's own profile */
-export const fetchMyProfile = () => api.get('/users/me');

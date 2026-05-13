@@ -1,229 +1,221 @@
-/**
- * authController.js  (new — replaces userController registration/login logic)
- *
- * POST /api/auth/register   — email/password signup (no role from body)
- * POST /api/auth/login      — email/password login
- * POST /api/auth/refresh    — issue new access token from refresh token
- * POST /api/auth/logout     — clear refresh token (stateless for now)
- * POST /api/auth/firebase   — validate Firebase ID token → issue JWT
- */
-
-require('dotenv').config();
-const bcrypt = require('bcryptjs');
-const { readDB, writeDB } = require('../utils/db');
-const { resolveRole, resolveFlags } = require('../utils/roleResolver');
+const crypto = require('crypto');
+const validator = require('validator');
+const User = require('../models/User');
+const { resolveRole } = require('../utils/roleResolver');
 const { signAccessToken, signRefreshToken, verifyToken } = require('../utils/tokenUtils');
+const { verifyFirebaseToken } = require('../utils/firebaseAdmin');
 
-/* ─── helpers ─────────────────────────────────────────────────────────────── */
+const normalizePhone = (phone = '') => {
+  const value = String(phone).replace(/[^\d+]/g, '');
+  if (!value) return undefined;
+  return value.startsWith('+') ? value : `+${value}`;
+};
 
-/** Strip sensitive fields before sending user to client */
-const sanitizeUser = (u) => ({
-  id: u.id,
-  name: u.name,
-  email: u.email,
-  role: u.role,
-  isAdmin: u.isAdmin,
-  isSeller: u.isSeller,
-  verifiedSeller: u.verifiedSeller,
-  emailVerified: u.emailVerified,
-  avatar: u.avatar || null,
-  provider: u.provider || 'email',
-  createdAt: u.createdAt,
+const publicUser = (user) => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  phone: user.phone || null,
+  avatar: user.avatar || null,
+  role: user.role,
+  isAdmin: user.role === 'admin',
+  isSeller: user.role === 'admin' || user.role === 'seller',
+  isVerified: Boolean(user.isVerified),
+  provider: user.provider,
+  firebaseUid: user.firebaseUid || null,
+  createdAt: user.createdAt,
 });
 
-/* ─── POST /api/auth/register ─────────────────────────────────────────────── */
-const register = async (req, res) => {
+const sendAuthResponse = (res, statusCode, user) => {
+  const accessToken = signAccessToken(user);
+  const refreshToken = signRefreshToken(user);
+  return res.status(statusCode).json({
+    accessToken,
+    refreshToken,
+    token: accessToken,
+    user: publicUser(user),
+  });
+};
+
+const register = async (req, res, next) => {
   try {
-    // express-validator already ran — only name/email/password arrive here
-    const { name, email, password } = req.body;
+    const name = validator.escape(String(req.body.name || '').trim());
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const phone = normalizePhone(req.body.phone);
+    const { password } = req.body;
 
-    const db = readDB();
-    if (db.users.find((u) => u.email === email.toLowerCase())) {
-      return res.status(400).json({ message: 'An account with this email already exists' });
-    }
-
-    // ✅ Role is resolved ENTIRELY by backend — never from req.body
-    const role = resolveRole(email);
-    const { isAdmin, isSeller } = resolveFlags(role);
-
-    const passwordHash = await bcrypt.hash(password, 12);
-    const newUser = {
-      id: `u${Date.now()}`,
-      name: name.trim(),
-      email: email.toLowerCase(),
-      passwordHash,
-      provider: 'email',
-      firebaseUid: null,
-      role,
-      isAdmin,
-      isSeller,
-      verifiedSeller: false,
-      isBlocked: false,
-      emailVerified: false,
-      avatar: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    db.users.push(newUser);
-    writeDB(db);
-
-    const accessToken = signAccessToken(newUser);
-    const refreshToken = signRefreshToken(newUser);
-
-    res.status(201).json({
-      accessToken,
-      refreshToken,
-      user: sanitizeUser(newUser),
+    const existing = await User.findOne({
+      $or: [{ email }, ...(phone ? [{ phone }] : [])],
     });
-  } catch (err) {
-    console.error('register error:', err);
-    res.status(500).json({ message: 'Registration failed. Please try again.' });
+
+    if (existing?.email === email) {
+      return res.status(409).json({ message: 'An account with this email already exists' });
+    }
+
+    if (phone && existing?.phone === phone) {
+      return res.status(409).json({ message: 'An account with this mobile number already exists' });
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      phone,
+      password,
+      role: resolveRole(email),
+      provider: 'email',
+      avatar: req.body.avatar || null,
+      isVerified: false,
+    });
+
+    return sendAuthResponse(res, 201, user);
+  } catch (error) {
+    return next(error);
   }
 };
 
-/* ─── POST /api/auth/login ────────────────────────────────────────────────── */
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const identifier = String(req.body.identifier || req.body.email || req.body.phone || '').trim();
+    const { password } = req.body;
+    const isEmail = validator.isEmail(identifier);
+    const phone = normalizePhone(identifier);
 
-    const db = readDB();
-    const user = db.users.find((u) => u.email === email.toLowerCase());
+    const user = await User.findOne(
+      isEmail ? { email: identifier.toLowerCase() } : { phone }
+    ).select('+password');
 
-    // Generic message — don't reveal whether email exists
-    if (!user || user.provider !== 'email') {
-      return res.status(401).json({ message: 'Invalid email or password' });
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    if (user.isBlocked) {
-      return res.status(403).json({ message: 'This account has been suspended. Contact support.' });
+    const resolvedRole = resolveRole(user.email);
+    if (user.role !== resolvedRole) {
+      user.role = resolvedRole;
+      await user.save({ validateBeforeSave: false });
     }
 
-    const isMatch = await bcrypt.compare(password, user.passwordHash || user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    // Re-resolve role on every login — catches email list changes
-    const role = resolveRole(user.email);
-    const { isAdmin, isSeller } = resolveFlags(role);
-
-    // Patch role flags if they changed
-    if (user.role !== role) {
-      user.role = role;
-      user.isAdmin = isAdmin;
-      user.isSeller = isSeller;
-      user.updatedAt = new Date().toISOString();
-      writeDB(db);
-    }
-
-    const accessToken = signAccessToken(user);
-    const refreshToken = signRefreshToken(user);
-
-    res.json({ accessToken, refreshToken, user: sanitizeUser(user) });
-  } catch (err) {
-    console.error('login error:', err);
-    res.status(500).json({ message: 'Login failed. Please try again.' });
+    return sendAuthResponse(res, 200, user);
+  } catch (error) {
+    return next(error);
   }
 };
 
-/* ─── POST /api/auth/refresh ──────────────────────────────────────────────── */
-const refresh = (req, res) => {
-  const { refreshToken } = req.body;
-  if (!refreshToken) {
-    return res.status(401).json({ message: 'No refresh token provided' });
-  }
-
+const socialLogin = async (req, res, next) => {
   try {
-    const decoded = verifyToken(refreshToken);
-    const db = readDB();
-    const user = db.users.find((u) => u.id === decoded.id);
-    if (!user || user.isBlocked) {
-      return res.status(401).json({ message: 'Invalid session' });
-    }
-
-    const accessToken = signAccessToken(user);
-    res.json({ accessToken });
-  } catch {
-    res.status(401).json({ message: 'Refresh token expired — please log in again' });
-  }
-};
-
-/* ─── POST /api/auth/logout ───────────────────────────────────────────────── */
-const logout = (_req, res) => {
-  // Stateless JWT — client deletes tokens. Future: invalidate refresh in DB/Redis.
-  res.json({ message: 'Logged out successfully' });
-};
-
-/* ─── POST /api/auth/firebase ─────────────────────────────────────────────── */
-/**
- * Called after a successful Firebase OAuth login (Google, Facebook, GitHub).
- * Client sends the Firebase ID token → we verify it → we issue our own JWT.
- *
- * For now we do a lightweight decode (no firebase-admin SDK required).
- * To fully verify, install firebase-admin and use admin.auth().verifyIdToken().
- */
-const firebaseAuth = async (req, res) => {
-  try {
-    const { idToken, provider = 'google' } = req.body;
+    const { idToken, provider = 'firebase', phone } = req.body;
     if (!idToken) {
       return res.status(400).json({ message: 'Firebase ID token is required' });
     }
 
-    // ── Decode Firebase token (base64 payload — NOT verified in this version)
-    // In production with firebase-admin installed, replace this with:
-    //   const decoded = await admin.auth().verifyIdToken(idToken);
-    let decoded;
-    try {
-      const payload = idToken.split('.')[1];
-      decoded = JSON.parse(Buffer.from(payload, 'base64url').toString());
-    } catch {
-      return res.status(400).json({ message: 'Invalid Firebase token format' });
+    const decoded = await verifyFirebaseToken(idToken);
+    if (!decoded.email) {
+      return res.status(400).json({ message: 'Email is required from the social provider' });
     }
 
-    const { email, name, picture, uid, email_verified } = decoded;
-    if (!email) {
-      return res.status(400).json({ message: 'Email not available from provider' });
-    }
+    const email = decoded.email.toLowerCase();
+    const safeProvider = ['google', 'facebook', 'github'].includes(provider) ? provider : 'firebase';
+    const normalizedPhone = normalizePhone(phone || decoded.phone_number);
 
-    const db = readDB();
-    let user = db.users.find((u) => u.email === email.toLowerCase());
-
+    let user = await User.findOne({ email });
     if (!user) {
-      // Auto-create account for OAuth users
-      const role = resolveRole(email);
-      const { isAdmin, isSeller } = resolveFlags(role);
-
-      user = {
-        id: `u${Date.now()}`,
-        name: name || email.split('@')[0],
-        email: email.toLowerCase(),
-        passwordHash: null,
-        provider,
-        firebaseUid: uid,
-        role,
-        isAdmin,
-        isSeller,
-        verifiedSeller: false,
-        isBlocked: false,
-        emailVerified: email_verified || false,
-        avatar: picture || null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      db.users.push(user);
-      writeDB(db);
-    } else if (user.isBlocked) {
-      return res.status(403).json({ message: 'Account suspended. Contact support.' });
+      user = await User.create({
+        name: decoded.name || email.split('@')[0],
+        email,
+        phone: normalizedPhone,
+        avatar: decoded.picture || null,
+        role: resolveRole(email),
+        provider: safeProvider,
+        firebaseUid: decoded.uid,
+        isVerified: Boolean(decoded.email_verified),
+      });
+    } else {
+      user.firebaseUid = user.firebaseUid || decoded.uid;
+      user.avatar = user.avatar || decoded.picture || null;
+      user.provider = user.provider === 'email' ? safeProvider : user.provider;
+      user.isVerified = user.isVerified || Boolean(decoded.email_verified);
+      if (normalizedPhone && !user.phone) user.phone = normalizedPhone;
+      await user.save({ validateBeforeSave: false });
     }
 
-    const accessToken = signAccessToken(user);
-    const refreshToken = signRefreshToken(user);
-    res.json({ accessToken, refreshToken, user: sanitizeUser(user) });
-  } catch (err) {
-    console.error('firebaseAuth error:', err);
-    res.status(500).json({ message: 'OAuth authentication failed' });
+    return sendAuthResponse(res, 200, user);
+  } catch (error) {
+    return next(error);
   }
 };
 
-module.exports = { register, login, refresh, logout, firebaseAuth };
+const forgotPassword = async (req, res, next) => {
+  try {
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const user = await User.findOne({ email });
+
+    if (user) {
+      const resetToken = user.createPasswordResetToken();
+      await user.save({ validateBeforeSave: false });
+
+      // Production hook: send resetToken by email provider. Do not return it outside development.
+      if (process.env.NODE_ENV !== 'production') {
+        return res.json({
+          message: 'Password reset token generated. Send this through your email service.',
+          resetToken,
+        });
+      }
+    }
+
+    return res.json({ message: 'If an account exists, password reset instructions have been sent.' });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const resetPassword = async (req, res, next) => {
+  try {
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Password reset token is invalid or expired' });
+    }
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    return sendAuthResponse(res, 200, user);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const refresh = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) return res.status(401).json({ message: 'No refresh token provided' });
+
+    const decoded = verifyToken(refreshToken);
+    const user = await User.findById(decoded.id);
+    if (!user) return res.status(401).json({ message: 'Invalid session' });
+
+    return res.json({ accessToken: signAccessToken(user) });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const logout = (_req, res) => {
+  res.json({ message: 'Logged out successfully' });
+};
+
+module.exports = {
+  register,
+  login,
+  refresh,
+  logout,
+  firebaseAuth: socialLogin,
+  socialLogin,
+  forgotPassword,
+  resetPassword,
+};

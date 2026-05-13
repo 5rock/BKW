@@ -1,182 +1,223 @@
-/**
- * SignupPage.jsx  (dedicated — no role selection)
- *
- * Route: /signup
- * Collects ONLY: Full Name, Email, Password
- * Role is decided entirely by the backend.
- * Features: password strength meter, social signup, field validation, toast
- */
-
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
-import { useAuth } from '../../context/AuthContext';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import PhoneInput from 'react-phone-input-2';
+import { CheckCircle2, Eye, EyeOff, Loader2, LockKeyhole, Mail, UserRound } from 'lucide-react';
+import { toast } from 'react-toastify';
 import AuthLayout from '../../components/auth/AuthLayout';
-import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
 import PasswordStrengthMeter from '../../components/auth/PasswordStrengthMeter';
+import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
+import { useAuth } from '../../context/AuthContext';
+
+const passwordRules = {
+  minLength: 'At least 8 characters',
+  upper: 'One uppercase letter',
+  lower: 'One lowercase letter',
+  number: 'One number',
+  symbol: 'One symbol',
+};
+
+const scorePassword = (password = '') =>
+  [
+    password.length >= 8,
+    /[A-Z]/.test(password),
+    /[a-z]/.test(password),
+    /\d/.test(password),
+    /[^A-Za-z0-9]/.test(password),
+  ].filter(Boolean).length;
 
 const SignupPage = () => {
-  const { register } = useAuth();
-  const navigate      = useNavigate();
+  const { register: createAccount } = useAuth();
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const [showPw, setShowPw]     = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [fieldErr, setFieldErr] = useState({});
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    mode: 'onChange',
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      password: '',
+      confirmPassword: '',
+      terms: false,
+      remember: true,
+    },
+  });
 
-  const handleChange = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-    setFieldErr((f) => ({ ...f, [e.target.name]: '' }));
-  };
+  const password = useWatch({ control, name: 'password' });
+  const strength = useMemo(() => scorePassword(password), [password]);
 
-  const validate = () => {
-    const errors = {};
-    if (!form.name.trim())            errors.name     = 'Full name is required';
-    if (!form.email)                  errors.email    = 'Email is required';
-    if (!form.password)               errors.password = 'Password is required';
-    else if (form.password.length < 8) errors.password = 'Password must be at least 8 characters';
-    else if (!/[A-Z]/.test(form.password)) errors.password = 'Must contain at least one uppercase letter';
-    else if (!/[0-9]/.test(form.password)) errors.password = 'Must contain at least one number';
-    return errors;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const errors = validate();
-    if (Object.keys(errors).length) { setFieldErr(errors); return; }
-
-    setLoading(true);
-    const tid = toast.loading('Creating your account…');
+  const onSubmit = async (values) => {
     try {
-      // ✅ NO role sent — backend decides based on email
-      await register(form.name.trim(), form.email, form.password);
-      toast.success('Account created! Welcome to GoldMarket 🎉', { id: tid, duration: 4000 });
-      navigate('/');
-    } catch (err) {
-      const msg = err?.response?.data?.message || 'Registration failed. Please try again.';
-      toast.error(msg, { id: tid });
-    } finally {
-      setLoading(false);
+      const result = await createAccount({
+        ...values,
+        phone: values.phone ? `+${values.phone.replace(/^\+/, '')}` : '',
+      });
+      toast.success('Your GoldMarket account is ready');
+      navigate(result.redirect || '/', { replace: true });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error?.message || 'Registration failed');
     }
   };
 
   return (
-    <AuthLayout title="Create your account" subtitle="Join GoldMarket — it's free">
-      {/* Social signup */}
+    <AuthLayout title="Create your account" subtitle="Open a verified customer profile with email, phone, and secure password protection.">
       <SocialLoginButtons mode="signup" />
 
-      {/* Divider */}
-      <div className="flex items-center gap-3 my-6">
-        <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-        <span className="text-xs text-gray-400 font-medium">or sign up with email</span>
-        <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+      <div className="my-6 flex items-center gap-3">
+        <div className="h-px flex-1 bg-white/12" />
+        <span className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/60">membership details</span>
+        <div className="h-px flex-1 bg-white/12" />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-        {/* Full Name */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
-          <label htmlFor="signup-name" className="text-xs font-semibold text-gray-500 dark:text-gray-400 ml-1">
-            Full Name
-          </label>
-          <div className="relative mt-1">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">person</span>
+          <label htmlFor="name" className="mb-2 block text-sm font-semibold text-amber-50/80">Full Name</label>
+          <div className="relative">
+            <UserRound className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-amber-200/70" />
             <input
-              id="signup-name"
-              name="name"
-              type="text"
+              id="name"
               autoComplete="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="John Doe"
-              className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-900 border rounded-xl text-sm dark:text-white outline-none transition-all
-                ${fieldErr.name ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-transparent focus:border-amber-400 focus:ring-2 focus:ring-amber-100 dark:focus:ring-amber-900/30'}`}
+              placeholder="Aarav Mehta"
+              className="h-[52px] w-full rounded-lg border border-white/12 bg-black/25 py-3.5 pl-12 pr-4 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-amber-300 focus:bg-black/35 focus:ring-4 focus:ring-amber-300/10"
+              {...register('name', {
+                required: 'Full name is required',
+                minLength: { value: 2, message: 'Name must be at least 2 characters' },
+              })}
             />
           </div>
-          {fieldErr.name && <p className="text-xs text-red-500 mt-1 ml-1">{fieldErr.name}</p>}
+          {errors.name && <p className="mt-1 text-xs text-red-300">{errors.name.message}</p>}
         </div>
 
-        {/* Email */}
         <div>
-          <label htmlFor="signup-email" className="text-xs font-semibold text-gray-500 dark:text-gray-400 ml-1">
-            Email Address
-          </label>
-          <div className="relative mt-1">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">mail</span>
+          <label htmlFor="email" className="mb-2 block text-sm font-semibold text-amber-50/80">Email Address</label>
+          <div className="relative">
+            <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-amber-200/70" />
             <input
-              id="signup-email"
-              name="email"
+              id="email"
               type="email"
               autoComplete="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="name@company.com"
-              className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-900 border rounded-xl text-sm dark:text-white outline-none transition-all
-                ${fieldErr.email ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-transparent focus:border-amber-400 focus:ring-2 focus:ring-amber-100 dark:focus:ring-amber-900/30'}`}
+              placeholder="you@example.com"
+              className="h-[52px] w-full rounded-lg border border-white/12 bg-black/25 py-3.5 pl-12 pr-4 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-amber-300 focus:bg-black/35 focus:ring-4 focus:ring-amber-300/10"
+              {...register('email', {
+                required: 'Email address is required',
+                pattern: { value: /\S+@\S+\.\S+/, message: 'Enter a valid email address' },
+              })}
             />
           </div>
-          {fieldErr.email && <p className="text-xs text-red-500 mt-1 ml-1">{fieldErr.email}</p>}
+          {errors.email && <p className="mt-1 text-xs text-red-300">{errors.email.message}</p>}
         </div>
 
-        {/* Password */}
         <div>
-          <label htmlFor="signup-password" className="text-xs font-semibold text-gray-500 dark:text-gray-400 ml-1">
-            Password
-          </label>
-          <div className="relative mt-1">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">lock</span>
+          <label className="mb-2 block text-sm font-semibold text-amber-50/80">Mobile Number</label>
+          <Controller
+            name="phone"
+            control={control}
+            rules={{
+              required: 'Mobile number is required',
+              validate: (value) => value?.length >= 10 || 'Enter a valid mobile number',
+            }}
+            render={({ field }) => (
+              <PhoneInput
+                country="in"
+                value={field.value}
+                onChange={field.onChange}
+                enableSearch
+                inputProps={{ name: 'phone', autoComplete: 'tel' }}
+                containerClass="gold-phone-container"
+                inputClass="gold-phone-input"
+                buttonClass="gold-phone-button"
+                dropdownClass="gold-phone-dropdown"
+              />
+            )}
+          />
+          {errors.phone && <p className="mt-1 text-xs text-red-300">{errors.phone.message}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="password" className="mb-2 block text-sm font-semibold text-amber-50/80">Password</label>
+          <div className="relative">
+            <LockKeyhole className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-amber-200/70" />
             <input
-              id="signup-password"
-              name="password"
-              type={showPw ? 'text' : 'password'}
+              id="password"
+              type={showPassword ? 'text' : 'password'}
               autoComplete="new-password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="Min. 8 characters"
-              className={`w-full pl-12 pr-12 py-3.5 bg-gray-50 dark:bg-gray-900 border rounded-xl text-sm dark:text-white outline-none transition-all
-                ${fieldErr.password ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-transparent focus:border-amber-400 focus:ring-2 focus:ring-amber-100 dark:focus:ring-amber-900/30'}`}
+              placeholder="Create a strong password"
+              className="h-[52px] w-full rounded-lg border border-white/12 bg-black/25 py-3.5 pl-12 pr-12 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-amber-300 focus:bg-black/35 focus:ring-4 focus:ring-amber-300/10"
+              {...register('password', {
+                required: 'Password is required',
+                validate: {
+                  minLength: (value) => value.length >= 8 || passwordRules.minLength,
+                  upper: (value) => /[A-Z]/.test(value) || passwordRules.upper,
+                  lower: (value) => /[a-z]/.test(value) || passwordRules.lower,
+                  number: (value) => /\d/.test(value) || passwordRules.number,
+                  symbol: (value) => /[^A-Za-z0-9]/.test(value) || passwordRules.symbol,
+                },
+              })}
             />
-            <button
-              type="button"
-              onClick={() => setShowPw((v) => !v)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-              aria-label={showPw ? 'Hide password' : 'Show password'}
-            >
-              <span className="material-symbols-outlined text-[20px]">{showPw ? 'visibility_off' : 'visibility'}</span>
+            <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-100/60 hover:text-amber-100" aria-label={showPassword ? 'Hide password' : 'Show password'}>
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
-          {fieldErr.password
-            ? <p className="text-xs text-red-500 mt-1 ml-1">{fieldErr.password}</p>
-            : <PasswordStrengthMeter password={form.password} />
-          }
+          <PasswordStrengthMeter password={password} />
+          {errors.password && <p className="mt-1 text-xs text-red-300">{errors.password.message}</p>}
         </div>
 
-        {/* Submit */}
+        <div>
+          <label htmlFor="confirmPassword" className="mb-2 block text-sm font-semibold text-amber-50/80">Confirm Password</label>
+          <div className="relative">
+            <CheckCircle2 className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-amber-200/70" />
+            <input
+              id="confirmPassword"
+              type={showConfirm ? 'text' : 'password'}
+              autoComplete="new-password"
+              placeholder="Re-enter password"
+              className="h-[52px] w-full rounded-lg border border-white/12 bg-black/25 py-3.5 pl-12 pr-12 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-amber-300 focus:bg-black/35 focus:ring-4 focus:ring-amber-300/10"
+              {...register('confirmPassword', {
+                required: 'Confirm your password',
+                validate: (value) => value === password || 'Passwords do not match',
+              })}
+            />
+            <button type="button" onClick={() => setShowConfirm((value) => !value)} className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-100/60 hover:text-amber-100" aria-label={showConfirm ? 'Hide password' : 'Show password'}>
+              {showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          </div>
+          {errors.confirmPassword && <p className="mt-1 text-xs text-red-300">{errors.confirmPassword.message}</p>}
+        </div>
+
+        <label className="flex items-start gap-3 text-sm leading-6 text-amber-50/70">
+          <input
+            type="checkbox"
+            className="mt-1 h-4 w-4 rounded border-white/20 bg-black/30 text-amber-400 focus:ring-amber-300"
+            {...register('terms', { required: 'You must accept the terms and conditions' })}
+          />
+          <span>I agree to the Terms & Conditions and Privacy Policy.</span>
+        </label>
+        {errors.terms && <p className="-mt-2 text-xs text-red-300">{errors.terms.message}</p>}
+
         <motion.button
           type="submit"
-          disabled={loading}
+          disabled={isSubmitting || strength < 5}
           whileTap={{ scale: 0.98 }}
-          className="w-full mt-2 py-3.5 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-white font-bold rounded-xl shadow-lg hover:shadow-amber-200/50 dark:hover:shadow-amber-900/30 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 font-black text-[#211504] shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5 hover:shadow-amber-400/30 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? (
-            <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Creating account…</>
-          ) : (
-            <><span className="material-symbols-outlined text-[18px]">person_add</span> Create Free Account</>
-          )}
+          {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
+          Create Secure Account
         </motion.button>
       </form>
 
-      <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+      <p className="mt-6 text-center text-sm text-amber-50/65">
         Already have an account?{' '}
-        <Link to="/login" className="text-amber-600 dark:text-amber-400 font-semibold hover:underline">
+        <Link to="/login" className="font-bold text-amber-200 hover:text-amber-100">
           Sign in
         </Link>
-      </p>
-
-      <p className="text-center text-xs text-gray-400 mt-4 leading-relaxed">
-        By creating an account, you agree to our{' '}
-        <a href="#" className="text-amber-600 hover:underline">Terms of Service</a> and{' '}
-        <a href="#" className="text-amber-600 hover:underline">Privacy Policy</a>.
       </p>
     </AuthLayout>
   );

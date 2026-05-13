@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import 'react-phone-input-2/lib/style.css';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
@@ -57,13 +59,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: { borderRadius: '12px', fontSize: '14px', fontWeight: '500' },
-            }}
-          />
+          <ToastContainer position="top-right" autoClose={3500} theme="dark" newestOnTop />
 
           <Suspense fallback={<PageLoader />}>
             <Routes>

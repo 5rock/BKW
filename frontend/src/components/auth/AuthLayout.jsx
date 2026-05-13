@@ -1,96 +1,94 @@
-/**
- * AuthLayout.jsx
- *
- * Shared two-panel layout used by all auth pages:
- * - Left: premium brand panel (hidden on mobile)
- * - Right: form area (slot via children)
- */
-
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { BadgeCheck, Gem, LockKeyhole, ShieldCheck, Sparkles } from 'lucide-react';
 
-const features = [
-  { icon: 'verified',       label: 'Verified Merchants',   desc: 'Every seller manually reviewed' },
-  { icon: 'security',       label: 'Secure Escrow',        desc: 'Funds held until delivery confirmed' },
-  { icon: 'workspace_premium', label: 'Premium Quality',   desc: 'Curated authentic gold products' },
-  { icon: 'support_agent',  label: '24/7 Support',         desc: 'Expert help whenever you need it' },
+const trustItems = [
+  { icon: ShieldCheck, label: 'Bank-grade security' },
+  { icon: BadgeCheck, label: 'Verified sellers' },
+  { icon: LockKeyhole, label: 'Protected checkout' },
 ];
 
 const AuthLayout = ({ children, title, subtitle }) => (
-  <div className="min-h-screen flex flex-col md:flex-row font-sans">
-    {/* ── Left brand panel ── */}
-    <div className="hidden md:flex md:w-[45%] relative overflow-hidden bg-gradient-to-br from-amber-600 via-yellow-500 to-amber-400 items-center justify-center p-12">
-      {/* Decorative blobs */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-amber-900/20 rounded-full blur-3xl" />
+  <main className="relative min-h-screen overflow-hidden bg-[#090704] text-white">
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.24),transparent_34%),linear-gradient(135deg,#090704_0%,#221507_46%,#0d0b09_100%)]" />
+    <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:64px_64px]" />
 
-      <div className="relative z-10 max-w-md">
-        <Link to="/" className="flex items-center gap-2 mb-10 group">
-          <span className="material-symbols-outlined text-4xl text-white">diamond</span>
-          <span className="text-3xl font-black text-white tracking-tight">GoldMarket</span>
+    {[...Array(18)].map((_, index) => (
+      <motion.span
+        key={index}
+        className="absolute h-1 w-1 rounded-full bg-amber-200/70"
+        style={{
+          left: `${8 + ((index * 47) % 86)}%`,
+          top: `${10 + ((index * 31) % 78)}%`,
+        }}
+        animate={{ opacity: [0.15, 0.85, 0.15], y: [0, -18, 0] }}
+        transition={{ duration: 4 + (index % 5), repeat: Infinity, delay: index * 0.2 }}
+      />
+    ))}
+
+    <div className="relative z-10 grid min-h-screen lg:grid-cols-[1.02fr_0.98fr]">
+      <section className="hidden px-10 py-10 lg:flex lg:flex-col lg:justify-between">
+        <Link to="/" className="flex w-fit items-center gap-3">
+          <span className="flex h-12 w-12 items-center justify-center rounded-lg border border-amber-300/30 bg-amber-300/15">
+            <Gem className="h-7 w-7 text-amber-200" />
+          </span>
+          <span className="text-2xl font-black tracking-[0.18em] text-amber-50">GOLDMARKET</span>
         </Link>
 
-        <h1 className="text-4xl font-bold text-white leading-tight mb-4">
-          The world's most trusted premium marketplace.
-        </h1>
-        <p className="text-white/80 text-lg mb-10 leading-relaxed">
-          Quality meets absolute reliability — every transaction secured.
-        </p>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="max-w-xl"
+        >
+          <div className="mb-5 flex w-fit items-center gap-2 rounded-full border border-amber-200/20 bg-black/20 px-4 py-2 text-sm text-amber-100">
+            <Sparkles className="h-4 w-4" />
+            Premium gold commerce, secured end to end
+          </div>
+          <h1 className="text-5xl font-black leading-tight tracking-normal text-white">
+            A private vault entrance for serious buyers and trusted sellers.
+          </h1>
+          <p className="mt-6 max-w-lg text-lg leading-8 text-amber-50/72">
+            Sign in to manage orders, wishlists, seller tools, and high-value transactions with a polished authentication flow.
+          </p>
+        </motion.div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {features.map((f, i) => (
-            <motion.div
-              key={f.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * i, duration: 0.5 }}
-              className="bg-white/15 backdrop-blur-md p-4 rounded-2xl border border-white/25 hover:bg-white/20 transition-colors"
-            >
-              <span className="material-symbols-outlined text-2xl text-white mb-2 block">{f.icon}</span>
-              <p className="text-white font-semibold text-sm">{f.label}</p>
-              <p className="text-white/70 text-xs mt-0.5">{f.desc}</p>
-            </motion.div>
+        <div className="grid max-w-2xl grid-cols-3 gap-3">
+          {trustItems.map(({ icon: Icon, label }) => (
+            <div key={label} className="rounded-lg border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl">
+              <Icon className="mb-3 h-5 w-5 text-amber-200" />
+              <p className="text-sm font-semibold text-white">{label}</p>
+            </div>
           ))}
         </div>
+      </section>
 
-        <div className="mt-10 flex items-center gap-3">
-          <div className="flex -space-x-2">
-            {['A', 'B', 'C'].map((l) => (
-              <div key={l} className="w-8 h-8 rounded-full bg-white/30 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-                {l}
-              </div>
-            ))}
+      <section className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
+        <motion.div
+          initial={{ opacity: 0, y: 18, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.45 }}
+          className="w-full max-w-[480px] rounded-lg border border-white/15 bg-white/[0.08] p-5 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-8"
+        >
+          <div className="mb-7 lg:hidden">
+            <Link to="/" className="flex items-center justify-center gap-2">
+              <Gem className="h-8 w-8 text-amber-200" />
+              <span className="text-xl font-black tracking-[0.16em]">GOLDMARKET</span>
+            </Link>
           </div>
-          <p className="text-white/80 text-sm">Join <span className="font-bold text-white">50,000+</span> verified customers</p>
-        </div>
-      </div>
+
+          {(title || subtitle) && (
+            <div className="mb-7">
+              {title && <h2 className="text-3xl font-black tracking-normal text-white">{title}</h2>}
+              {subtitle && <p className="mt-2 text-sm leading-6 text-amber-50/65">{subtitle}</p>}
+            </div>
+          )}
+
+          {children}
+        </motion.div>
+      </section>
     </div>
-
-    {/* ── Right form panel ── */}
-    <div className="flex-1 flex items-center justify-center p-6 md:p-12 bg-white dark:bg-gray-950">
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
-      >
-        {/* Mobile logo */}
-        <div className="md:hidden flex items-center gap-2 justify-center mb-8">
-          <span className="material-symbols-outlined text-amber-500 text-3xl">diamond</span>
-          <Link to="/" className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">GoldMarket</Link>
-        </div>
-
-        {(title || subtitle) && (
-          <div className="mb-8">
-            {title   && <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h2>}
-            {subtitle && <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{subtitle}</p>}
-          </div>
-        )}
-
-        {children}
-      </motion.div>
-    </div>
-  </div>
+  </main>
 );
 
 export default AuthLayout;
