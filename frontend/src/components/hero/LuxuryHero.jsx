@@ -1,81 +1,151 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowRight, Flame, Sparkles, TrendingUp } from 'lucide-react';
-import { Autoplay, EffectFade, Pagination } from 'swiper/modules';
+import { Autoplay, EffectFade } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/effect-fade';
-import 'swiper/css/pagination';
 import { heroSlides } from '../../constants/marketplace';
 import { padTime, useCountdown } from '../../hooks/useCountdown';
 import LuxuryButton from '../ui/LuxuryButton';
 
+const PARTICLES = Array.from({ length: 10 }, (_, i) => ({
+  id: i,
+  left: `${(i * 37) % 100}%`,
+  top: `${18 + ((i * 19) % 70)}%`,
+  delay: `${i * 0.4}s`,
+}));
+
 const LuxuryHero = () => {
-  const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 0.35], [0, 120]);
-  const scale = useTransform(scrollYProgress, [0, 0.35], [1, 1.08]);
   const timer = useCountdown(10);
 
+  const particles = useMemo(() => PARTICLES, []);
+
   return (
-    <section className="relative min-h-[100svh] overflow-hidden bg-black pt-20">
-      <Swiper modules={[Autoplay, EffectFade, Pagination]} effect="fade" loop autoplay={{ delay: 5200, disableOnInteraction: false }} pagination={{ clickable: true }} className="absolute inset-0">
+    <section className="theme-page relative overflow-hidden" style={{ minHeight: 'clamp(680px, 92svh, 860px)' }}>
+      {/* Background Slider — crossFade isolation eliminates auto-switching line cutoffs */}
+      <Swiper
+        modules={[Autoplay, EffectFade]}
+        effect="fade"
+        fadeEffect={{ crossFade: true }}
+        loop
+        autoplay={{ delay: 5500, disableOnInteraction: false }}
+        speed={1400}
+        className="absolute inset-0 z-0 h-full w-full"
+        allowTouchMove={false}
+      >
         {heroSlides.map((slide) => (
-          <SwiperSlide key={slide.title}>
-            <motion.img style={{ scale, y }} src={slide.image} alt="" className="h-full w-full object-cover opacity-70" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(245,197,82,0.20),transparent_28rem),linear-gradient(90deg,rgba(0,0,0,0.92),rgba(0,0,0,0.62),rgba(0,0,0,0.18)),linear-gradient(0deg,rgba(0,0,0,0.92),transparent_48%)]" />
+          <SwiperSlide key={slide.title} className="absolute inset-0 h-full w-full overflow-hidden">
+            <img
+              src={slide.image}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover opacity-30 dark:opacity-60"
+              loading="eager"
+              decoding="async"
+            />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(245,197,82,0.15),transparent_35rem),linear-gradient(90deg,rgba(244,236,228,0.95),rgba(244,236,228,0.72),rgba(244,236,228,0.18)),linear-gradient(0deg,rgba(244,236,228,0.95),transparent_48%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(245,197,82,0.20),transparent_28rem),linear-gradient(90deg,rgba(0,0,0,0.92),rgba(0,0,0,0.62),rgba(0,0,0,0.18)),linear-gradient(0deg,rgba(0,0,0,0.92),transparent_48%)]" />
           </SwiperSlide>
         ))}
       </Swiper>
 
-      <div className="pointer-events-none absolute inset-0">
-        {Array.from({ length: 24 }).map((_, index) => (
-          <span key={index} className="floating-particle absolute h-1 w-1 rounded-full bg-amber-200/70" style={{ left: `${(index * 37) % 100}%`, top: `${18 + ((index * 19) % 70)}%`, animationDelay: `${index * 0.28}s` }} />
+      {/* Floating particles — reduced count, GPU accelerated */}
+      <div className="pointer-events-none absolute inset-0 z-10">
+        {particles.map((p) => (
+          <span
+            key={p.id}
+            className="floating-particle absolute h-1 w-1 rounded-full bg-amber-600/30 dark:bg-amber-200/60"
+            style={{ left: p.left, top: p.top, animationDelay: p.delay }}
+          />
         ))}
       </div>
 
-      <div className="absolute inset-0 z-20 flex items-start pt-32 sm:pt-36">
+      {/* Content overlay */}
+      <div className="relative z-20 flex min-h-[inherit] items-center py-28 sm:py-32 lg:py-36">
         <div className="luxury-shell">
-        <div className="max-w-4xl">
-          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-200/10 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-amber-100 backdrop-blur-xl">
-            <Sparkles className="h-4 w-4" /> GoldMarket / MarketX
-          </motion.div>
-          <motion.h1 initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.08 }} className="max-w-4xl text-4xl font-black leading-[0.95] tracking-tight text-white sm:text-6xl lg:text-7xl">
-            Luxury marketplace. <span className="text-gradient">Engineered to convert.</span>
-          </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.16 }} className="mt-6 max-w-2xl text-base leading-8 text-white/68 sm:text-lg">
-            A cinematic premium storefront for verified products, fast buying journeys, immersive discovery, and beautiful commerce moments.
-          </motion.p>
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.24 }} className="mt-8 flex flex-wrap gap-3">
-            <LuxuryButton as={Link} to="/products">Shop Now <ArrowRight className="h-4 w-4" /></LuxuryButton>
-            <LuxuryButton as={Link} to="/products?sort=top_rated" variant="ghost">Explore Collection</LuxuryButton>
-            <LuxuryButton as={Link} to="/products?sort=most_popular" variant="ghost"><TrendingUp className="h-4 w-4" /> Trending Deals</LuxuryButton>
-          </motion.div>
+          <div className="max-w-4xl">
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-600/20 bg-amber-600/[0.05] px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.28em] text-amber-800 backdrop-blur-2xl dark:border-amber-200/30 dark:bg-amber-200/10 dark:text-amber-300"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> GoldMarket / MarketX
+            </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.32 }} className="mt-7 grid max-w-3xl gap-3 sm:grid-cols-[1fr_auto]">
-            <div className="glass rounded-[1.5rem] p-4">
-              <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-amber-200"><Flame className="h-4 w-4" /> Private sale closes in</p>
-              <div className="mt-3 flex gap-2">
-                {[
-                  [timer.hours, 'Hours'],
-                  [timer.minutes, 'Mins'],
-                  [timer.seconds, 'Secs'],
-                ].map(([value, label]) => (
-                  <div key={label} className="min-w-20 rounded-2xl border border-white/10 bg-black/35 p-3 text-center">
-                    <p className="text-2xl font-black text-white">{padTime(value)}</p>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/42">{label}</p>
-                  </div>
-                ))}
+            <motion.h1
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.08 }}
+              className="max-w-4xl font-black leading-[1.02] tracking-[-0.03em] text-gray-950 dark:text-white [font-size:clamp(3rem,8vw,7rem)]"
+            >
+              Luxury marketplace.{' '}
+              <span className="text-gradient">Engineered to convert.</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.16 }}
+              className="mt-5 max-w-2xl text-sm leading-7 text-gray-600 dark:text-white/[0.68] sm:text-base sm:leading-8"
+            >
+              A cinematic premium storefront for verified products, fast buying
+              journeys, immersive discovery, and beautiful commerce moments.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.24 }}
+              className="mt-7 flex flex-wrap gap-3"
+            >
+              <LuxuryButton as={Link} to="/products">
+                Shop Now <ArrowRight className="h-4 w-4" />
+              </LuxuryButton>
+              <LuxuryButton as={Link} to="/products?sort=top_rated" variant="ghost">
+                Explore Collection
+              </LuxuryButton>
+              <LuxuryButton as={Link} to="/products?sort=most_popular" variant="ghost" className="hidden sm:inline-flex">
+                <TrendingUp className="h-4 w-4" /> Trending Deals
+              </LuxuryButton>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.32 }}
+              className="mt-6 grid max-w-3xl gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]"
+            >
+              <div className="rounded-[1.5rem] border border-black/5 dark:border-white/10 bg-white/40 dark:bg-white/[0.065] p-5 backdrop-blur-2xl">
+                <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-200">
+                  <Flame className="h-4 w-4" /> Private sale closes in
+                </p>
+                <div className="mt-3 flex gap-2">
+                  {[
+                    [timer.hours, 'Hours'],
+                    [timer.minutes, 'Mins'],
+                    [timer.seconds, 'Secs'],
+                  ].map(([value, label]) => (
+                    <div key={label} className="min-w-16 rounded-2xl border border-black/5 dark:border-white/10 bg-black/[0.03] dark:bg-black/[0.35] p-2.5 text-center sm:min-w-20 sm:p-3">
+                      <p className="text-xl font-black text-gray-950 dark:text-white sm:text-2xl">{padTime(value)}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400 dark:text-white/[0.42]">{label}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="glass rounded-[1.5rem] p-4 sm:w-60">
-              <p className="text-3xl font-black text-white">50K+</p>
-              <p className="mt-1 text-sm font-semibold leading-6 text-white/54">luxury shoppers already using verified marketplace protection.</p>
-            </div>
-          </motion.div>
-        </div>
+              <div className="rounded-[1.5rem] border border-black/5 dark:border-white/10 bg-white/40 dark:bg-white/[0.065] p-5 backdrop-blur-2xl sm:w-56">
+                <p className="text-3xl font-black text-gray-950 dark:text-white">50K+</p>
+                <p className="mt-1 text-sm font-semibold leading-6 text-gray-500 dark:text-white/[0.54]">
+                  luxury shoppers already using verified marketplace protection.
+                </p>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#050505] to-transparent" />
+
+      {/* Bottom gradient fade */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-20 bg-gradient-to-t from-[#f4ece4] to-transparent dark:from-[#050505]" />
     </section>
   );
 };

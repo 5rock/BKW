@@ -8,18 +8,18 @@ import ProductCard from './ProductCard';
 import Reveal from '../animations/Reveal';
 
 const ProductRail = ({ title, eyebrow, copy, products = [] }) => (
-  <section className="luxury-shell py-14">
-    <Reveal className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+  <section className="luxury-shell py-20 sm:py-28">
+    <Reveal className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
       <div>
-        <p className="text-sm font-black uppercase tracking-[0.24em] text-amber-200">{eyebrow}</p>
-        <h2 className="mt-3 text-3xl font-black tracking-tight text-white sm:text-5xl">{title}</h2>
-        {copy && <p className="mt-3 max-w-2xl text-sm leading-7 text-white/52">{copy}</p>}
+        <p className="text-sm font-black uppercase tracking-[0.24em] text-amber-600 dark:text-amber-200">{eyebrow}</p>
+        <h2 className="mt-4 text-4xl font-black tracking-tight text-gray-950 dark:text-white sm:text-6xl">{title}</h2>
+        {copy && <p className="mt-4 max-w-2xl text-base leading-8 text-gray-600 dark:text-white/[0.52]">{copy}</p>}
       </div>
-      <Link to="/products" className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.16em] text-amber-200">
+      <Link to="/products" className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.16em] text-amber-600 transition hover:text-amber-700 dark:text-amber-200 dark:hover:text-amber-300">
         View all <ArrowRight className="h-4 w-4" />
       </Link>
     </Reveal>
-    <Swiper modules={[FreeMode]} freeMode slidesPerView={1.35} spaceBetween={18} breakpoints={{ 640: { slidesPerView: 2.35 }, 1024: { slidesPerView: 3.35 }, 1280: { slidesPerView: 4.1 } }}>
+    <Swiper modules={[FreeMode]} freeMode slidesPerView={1.2} spaceBetween={24} breakpoints={{ 640: { slidesPerView: 2.2 }, 1024: { slidesPerView: 3.2 }, 1280: { slidesPerView: 4 } }}>
       {products.map((product) => (
         <SwiperSlide key={product.id || product._id} className="h-auto pb-2">
           <ProductCard product={product} />

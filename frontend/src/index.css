@@ -8,32 +8,206 @@
     --gold: 245 197 82;
     --champagne: 255 237 178;
     --onyx: 4 4 5;
+    --surface-primary: #050505;
+    --surface-card: rgba(255, 255, 255, 0.065);
+    --surface-elevated: rgba(255, 255, 255, 0.09);
+    --border-subtle: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.68);
+    --text-muted: rgba(255, 255, 255, 0.45);
+    --color-page: #050505;
+    --color-panel: rgba(255, 255, 255, 0.055);
+    --color-panel-strong: rgba(255, 255, 255, 0.085);
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-text: #ffffff;
+    --color-muted: rgba(255, 255, 255, 0.56);
+    --color-soft: rgba(255, 255, 255, 0.38);
+    --color-accent: #f5c552;
+    --color-accent-deep: #d49a32;
+  }
+
+  html.light {
+    color-scheme: light;
+    --surface-primary: #f4ece4;
+    --surface-card: rgba(0, 0, 0, 0.045);
+    --surface-elevated: rgba(0, 0, 0, 0.075);
+    --border-subtle: rgba(0, 0, 0, 0.1);
+    --text-primary: #2d2926;
+    --text-secondary: rgba(45, 41, 38, 0.72);
+    --text-muted: rgba(45, 41, 38, 0.48);
+    --color-page: #f4ece4;
+    --color-panel: rgba(255, 248, 239, 0.68);
+    --color-panel-strong: rgba(236, 213, 195, 0.72);
+    --color-border: rgba(61, 47, 38, 0.11);
+    --color-text: #2d2926;
+    --color-muted: rgba(45, 41, 38, 0.64);
+    --color-soft: rgba(45, 41, 38, 0.42);
+    --color-accent: #b87836;
+    --color-accent-deep: #8b5a2f;
   }
 
   html {
     scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-[#050505] font-sans text-white antialiased transition-colors duration-500;
+    @apply bg-[#050505] font-sans text-white antialiased;
+    transition: background-color 0.5s ease, color 0.5s ease;
     background:
       radial-gradient(circle at 15% 0%, rgba(245, 197, 82, 0.12), transparent 30rem),
       radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.08), transparent 24rem),
       #050505;
   }
 
-  body::selection {
+  html.light body,
+  html:not(.dark) body {
+    @apply bg-[#f4ece4] text-[#2d2926];
+    background:
+      radial-gradient(circle at 15% 0%, rgba(245, 197, 82, 0.1), transparent 35rem),
+      radial-gradient(circle at 85% 10%, rgba(45, 41, 38, 0.04), transparent 28rem),
+      #f4ece4;
+  }
+
+  ::selection {
     @apply bg-amber-300 text-black;
   }
 
   img {
     @apply select-none;
   }
+
+  /* Smooth transitions for theme switching */
+  *, *::before, *::after {
+    transition-property: background-color, border-color, box-shadow;
+    transition-duration: 0s;
+    transition-timing-function: ease;
+  }
+
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition-duration: 0.4s !important;
+  }
+}
+
+@layer components {
+  .market-liquid-card {
+    position: relative;
+    isolation: isolate;
+    width: 200px;
+    height: 200px;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.01);
+    background-blend-mode: luminosity;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .market-liquid-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.08));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .market-liquid-card__inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .market-hero-scrim {
+    background: linear-gradient(90deg, #070b0a 0%, rgba(7, 11, 10, 0) 56%),
+      linear-gradient(0deg, rgba(7, 11, 14, 0.97) 0%, rgba(7, 11, 10, 0) 44%),
+      linear-gradient(180deg, rgba(7, 11, 10, 0.55) 0%, rgba(7, 11, 10, 0) 36%);
+  }
+
+  html.light .market-hero-scrim {
+    background: linear-gradient(90deg, rgba(244, 236, 228, 0.12) 0%, transparent 55%),
+      linear-gradient(0deg, rgba(7, 11, 10, 0.92) 0%, transparent 42%),
+      linear-gradient(180deg, rgba(7, 11, 10, 0.35) 0%, transparent 28%);
+  }
 }
 
 @layer utilities {
   .luxury-shell {
     @apply mx-auto w-full max-w-[1500px] px-4 sm:px-6 lg:px-8;
+  }
+
+  .theme-page {
+    background:
+      radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 32rem),
+      radial-gradient(circle at 90% 4%, color-mix(in srgb, var(--color-panel-strong) 45%, transparent), transparent 26rem),
+      var(--color-page);
+    color: var(--color-text);
+    @apply transition-colors duration-500;
+  }
+
+  .theme-card {
+    background: var(--color-panel);
+    border-color: var(--color-border);
+    color: var(--color-text);
+    @apply border shadow-xl shadow-black/5 backdrop-blur-2xl dark:shadow-black/25;
+  }
+
+  .theme-card-strong {
+    background: var(--color-panel-strong);
+    border-color: var(--color-border);
+    color: var(--color-text);
+    @apply border shadow-2xl shadow-black/5 backdrop-blur-2xl dark:shadow-black/35;
+  }
+
+  html.light .theme-card .text-white,
+  html.light .theme-card-strong .text-white {
+    color: var(--color-text);
+  }
+
+  .theme-text {
+    color: var(--color-text);
+  }
+
+  .theme-muted {
+    color: var(--color-muted);
+  }
+
+  .theme-soft {
+    color: var(--color-soft);
+  }
+
+  .theme-input {
+    background: color-mix(in srgb, var(--color-panel) 82%, transparent);
+    border-color: var(--color-border);
+    color: var(--color-text);
+    @apply border outline-none transition focus:border-amber-400/60 focus:ring-4 focus:ring-amber-400/10;
+  }
+
+  .theme-input::placeholder {
+    color: var(--color-soft);
+  }
+
+  html.light .theme-input::placeholder {
+    color: rgba(61, 47, 38, 0.48);
+  }
+
+  html.light .bg-\[\#050505\],
+  html.light .dark-only-page-fallback {
+    background-color: #f4ece4 !important;
   }
 
   .luxury-border {
@@ -45,6 +219,10 @@
     @apply border border-white/10 bg-white/[0.065] shadow-2xl shadow-black/30 backdrop-blur-2xl;
   }
 
+  html:not(.dark) .glass {
+    @apply border-black/10 bg-white/80 shadow-black/5;
+  }
+
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-yellow-500 to-orange-200;
   }
@@ -54,13 +232,34 @@
   }
 
   .shimmer {
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
-    background-size: 220% 100%;
-    animation: shimmer 2.4s linear infinite;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(255, 255, 255, 0.14) 40%,
+      rgba(255, 255, 255, 0.04) 60%
+    );
+    background-size: 300% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  html:not(.dark) .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.04) 0%,
+      rgba(0, 0, 0, 0.08) 40%,
+      rgba(0, 0, 0, 0.04) 60%
+    );
+    background-size: 300% 100%;
   }
 
   .floating-particle {
     animation: floatParticle 10s ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+
+  .gpu-accelerate {
+    will-change: transform;
+    transform: translateZ(0);
   }
 
   .no-scrollbar::-webkit-scrollbar {
@@ -122,11 +321,43 @@
   .gold-phone-container .country.highlight {
     background: rgb(245 158 11 / 0.22);
   }
+
+  html.light .gold-phone-container .gold-phone-input {
+    border: 1px solid rgb(61 47 38 / 0.14);
+    background: rgb(255 255 255 / 0.96);
+    color: #2d2926;
+  }
+
+  html.light .gold-phone-container .gold-phone-input:focus {
+    border-color: rgb(180 120 54);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgb(184 120 54 / 0.14);
+  }
+
+  html.light .gold-phone-container .gold-phone-input::placeholder {
+    color: rgb(61 47 38 / 0.45);
+  }
+
+  html.light .gold-phone-container .gold-phone-button {
+    background: rgb(0 0 0 / 0.04);
+  }
+
+  html.light .gold-phone-container .gold-phone-button:hover,
+  html.light .gold-phone-container .gold-phone-button.open {
+    background: rgb(0 0 0 / 0.08);
+  }
+
+  html.light .gold-phone-container .gold-phone-dropdown {
+    border: 1px solid rgb(61 47 38 / 0.12);
+    background: #fffdf8;
+    color: #2d2926;
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.12);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: 220% 0; }
-  100% { background-position: -220% 0; }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 @keyframes floatParticle {

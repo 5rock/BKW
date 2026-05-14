@@ -14,10 +14,10 @@ const CategoryCarousel = () => {
     <section className="luxury-shell py-16">
       <Reveal className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.24em] text-amber-200">Shop by Category</p>
-          <h2 className="mt-3 text-3xl font-black tracking-tight text-white sm:text-5xl">Curated departments</h2>
+          <p className="text-sm font-black uppercase tracking-[0.24em] text-amber-600 dark:text-amber-200">Shop by Category</p>
+          <h2 className="mt-3 text-3xl font-black tracking-tight text-gray-950 dark:text-white sm:text-5xl">Curated departments</h2>
         </div>
-        <p className="max-w-md text-sm leading-7 text-white/52">Circular premium cards, fast touch controls, and category signals for better discovery.</p>
+        <p className="max-w-md text-sm leading-7 text-gray-600 dark:text-white/50">Circular premium cards, fast touch controls, and category signals for better discovery.</p>
       </Reveal>
 
       <Swiper modules={[FreeMode]} freeMode slidesPerView={2.2} spaceBetween={16} breakpoints={{ 640: { slidesPerView: 3.4 }, 1024: { slidesPerView: 5.2 }, 1280: { slidesPerView: 6.2 } }}>
@@ -34,15 +34,15 @@ const CategoryCarousel = () => {
                 onClick={() => navigate(`/products?category=${encodeURIComponent(category.name)}`)}
                 className="group w-full"
               >
-                <div className="relative mx-auto aspect-square overflow-hidden rounded-full border border-white/10 bg-white/[0.06] p-2 shadow-2xl shadow-black/25">
+                <div className="relative mx-auto aspect-square overflow-hidden rounded-full border border-black/[0.03] bg-white/40 p-2 shadow-lg shadow-black/[0.02] dark:border-white/10 dark:bg-white/[0.06] dark:shadow-2xl dark:shadow-black/25">
                   <img src={category.image} alt={category.name} loading="lazy" className="h-full w-full rounded-full object-cover transition duration-700 group-hover:scale-110" />
-                  <div className="absolute inset-2 rounded-full bg-gradient-to-t from-black/74 via-transparent to-transparent" />
-                  <div className="absolute bottom-4 left-1/2 grid h-11 w-11 -translate-x-1/2 place-items-center rounded-full bg-amber-300 text-black shadow-xl">
+                  <div className="absolute inset-2 rounded-full bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-1/2 grid h-11 w-11 -translate-x-1/2 place-items-center rounded-full bg-amber-400 dark:bg-amber-300 text-black shadow-xl">
                     <Icon className="h-5 w-5" />
                   </div>
                 </div>
-                <p className="mt-4 text-center text-sm font-black text-white">{category.name}</p>
-                <p className="mt-1 text-center text-xs font-bold text-amber-200/70">{category.count} products</p>
+                <p className="mt-5 text-center text-sm font-black text-gray-950 dark:text-white">{category.name}</p>
+                <p className="mt-1 text-center text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-200/70">{category.count} items</p>
               </motion.button>
             </SwiperSlide>
           );

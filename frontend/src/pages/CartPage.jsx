@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import CartItem from '../components/CartItem';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, ArrowRight, ShieldCheck, Truck, ArrowLeft, Tag } from 'lucide-react';
+import Reveal from '../components/animations/Reveal';
 
 const CartPage = () => {
   const { cartItems, savedItems, cartTotal, loading } = useCart();
@@ -14,55 +15,68 @@ const CartPage = () => {
   const grandTotal = cartTotal > 0 ? cartTotal + tax + shipping : 0;
 
   return (
-    <div className="bg-background-light dark:bg-background-dark min-h-screen pt-28 pb-20">
-      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <div className="flex items-center gap-3 mb-8">
-          <h1 className="text-3xl md:text-4xl font-black text-text-light dark:text-text-dark tracking-tight">Shopping Cart</h1>
-          {!user && <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-black text-yellow-700">Guest cart</span>}
+    <div className="theme-page min-h-screen pt-28 pb-20">
+      <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+        <Reveal className="mb-8 flex items-center gap-3">
+          <h1 className="theme-text text-3xl font-black tracking-tight md:text-4xl">Shopping Cart</h1>
+          {!user && (
+            <span className="rounded-full bg-amber-300/15 px-3 py-1 text-xs font-black text-amber-200">Guest cart</span>
+          )}
           {cartItems.length > 0 && (
-            <span className="bg-gray-200 dark:bg-gray-800 text-text-light dark:text-text-dark text-sm font-bold px-3 py-1 rounded-full">
+            <span className="theme-card rounded-full px-3 py-1 text-sm font-bold">
               {cartItems.length} {cartItems.length === 1 ? 'Item' : 'Items'}
             </span>
           )}
-        </div>
+        </Reveal>
 
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
           {/* Cart Items */}
           <div className="flex-grow space-y-4">
             {loading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="bg-gray-100 dark:bg-gray-800 rounded-2xl h-40 animate-pulse" />
+                  <div key={i} className="theme-card overflow-hidden rounded-2xl">
+                    <div className="shimmer h-36 w-full" />
+                  </div>
                 ))}
               </div>
             ) : cartItems.length === 0 ? (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm"
+                className="theme-card flex flex-col items-center justify-center rounded-3xl py-20 text-center"
               >
-                <div className="w-24 h-24 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
-                  <ShoppingBag className="h-10 w-10 text-gray-300 dark:text-gray-600" />
+                <div className="theme-card-strong mb-6 flex h-24 w-24 items-center justify-center rounded-full">
+                  <ShoppingBag className="h-10 w-10 text-amber-700/50 dark:text-white/30" />
                 </div>
-                <h3 className="text-2xl font-bold text-text-light dark:text-text-dark mb-2">Your cart is empty</h3>
-                <p className="text-text-muted-light dark:text-text-muted-dark mb-8 max-w-sm">Looks like you haven't added anything to your cart yet. Discover something amazing today!</p>
-                <Link to="/products" className="bg-brand-yellow text-text-light font-bold px-10 py-4 rounded-full hover:bg-yellow-400 hover:scale-105 active:scale-95 transition-all shadow-md">
+                <h3 className="theme-text text-2xl font-bold">Your cart is empty</h3>
+                <p className="theme-muted mt-2 max-w-sm">
+                  Looks like you haven't added anything to your cart yet. Discover something amazing today!
+                </p>
+                <Link
+                  to="/products"
+                  className="mt-8 rounded-full bg-amber-300 px-10 py-4 font-black text-black shadow-[0_16px_50px_rgba(245,197,82,0.2)] transition hover:bg-amber-200 hover:scale-105 active:scale-95"
+                >
                   Start Shopping
                 </Link>
               </motion.div>
             ) : (
               <motion.div layout className="space-y-4">
                 <AnimatePresence>
-                  {cartItems.map((item) => <CartItem key={item.id} item={item} />)}
+                  {cartItems.map((item) => (
+                    <CartItem key={item.id} item={item} />
+                  ))}
                 </AnimatePresence>
               </motion.div>
             )}
 
             {!loading && cartItems.length > 0 && (
               <div className="pt-8">
-                <Link to="/products" className="inline-flex items-center gap-2 font-bold text-text-light dark:text-text-dark hover:text-brand-yellow dark:hover:text-brand-yellow transition-colors group">
-                  <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                <Link
+                  to="/products"
+                  className="group inline-flex items-center gap-2 font-bold text-amber-800 transition-colors hover:text-amber-700 dark:text-white/60 dark:hover:text-amber-200"
+                >
+                  <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
                   Continue Shopping
                 </Link>
               </div>
@@ -70,9 +84,11 @@ const CartPage = () => {
 
             {!loading && savedItems.length > 0 && (
               <div className="pt-8">
-                <h2 className="mb-4 text-2xl font-black text-text-light dark:text-white">Saved for Later</h2>
+                <h2 className="theme-text mb-4 text-2xl font-black">Saved for Later</h2>
                 <div className="space-y-4">
-                  {savedItems.map((item) => <CartItem key={item.id} item={item} />)}
+                  {savedItems.map((item) => (
+                    <CartItem key={item.id} item={item} />
+                  ))}
                 </div>
               </div>
             )}
@@ -80,63 +96,64 @@ const CartPage = () => {
 
           {/* Order Summary */}
           {cartItems.length > 0 && (
-            <aside className="w-full lg:w-[420px] flex-shrink-0">
-              <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 shadow-xl border border-gray-100 dark:border-gray-800 sticky top-32">
-                <h2 className="text-2xl font-bold mb-6 text-text-light dark:text-text-dark">Order Summary</h2>
+            <aside className="w-full flex-shrink-0 lg:w-[420px]">
+              <div className="theme-card sticky top-32 rounded-3xl p-6 sm:p-8">
+                <h2 className="theme-text mb-6 text-2xl font-bold">Order Summary</h2>
 
                 {/* Promo Code */}
-                <div className="flex gap-2 mb-8 bg-gray-50 dark:bg-gray-800 p-2 rounded-xl border border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-brand-yellow transition-all">
-                  <Tag className="h-5 w-5 text-gray-400 self-center ml-2" />
+                <div className="theme-input mb-8 flex gap-2 overflow-hidden rounded-xl p-1">
+                  <Tag className="theme-soft ml-3 h-5 w-5 self-center" />
                   <input
                     type="text"
                     placeholder="Promo Code"
-                    className="flex-grow bg-transparent border-none px-2 py-2 text-sm focus:outline-none dark:text-white placeholder-gray-400"
+                    className="min-w-0 flex-grow border-none bg-transparent px-2 py-2.5 text-sm outline-none placeholder:text-[var(--color-soft)]"
                   />
-                  <button className="bg-text-light dark:bg-white text-white dark:text-text-light px-4 rounded-lg text-sm font-bold hover:bg-black transition-colors shrink-0">
+                  <button className="shrink-0 rounded-lg bg-amber-300 px-4 text-sm font-bold text-black transition hover:bg-amber-200">
                     Apply
                   </button>
                 </div>
 
-                <div className="space-y-4 border-b border-gray-100 dark:border-gray-800 pb-6">
-                  <div className="flex justify-between text-text-muted-light dark:text-text-muted-dark">
+                <div className="space-y-4 border-b border-[var(--color-border)] pb-6">
+                  <div className="theme-muted flex justify-between">
                     <span>Subtotal</span>
-                    <span className="font-medium text-text-light dark:text-text-dark">${cartTotal.toFixed(2)}</span>
+                    <span className="theme-text font-medium">${cartTotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-text-muted-light dark:text-text-muted-dark">
+                  <div className="theme-muted flex justify-between">
                     <span>Estimated Tax (8%)</span>
-                    <span className="font-medium text-text-light dark:text-text-dark">${tax.toFixed(2)}</span>
+                    <span className="theme-text font-medium">${tax.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-text-muted-light dark:text-text-muted-dark">Shipping</span>
-                    {shipping === 0
-                      ? <span className="text-green-500 font-bold">FREE</span>
-                      : <span className="font-medium text-text-light dark:text-text-dark">${shipping.toFixed(2)}</span>
-                    }
+                    <span className="theme-muted">Shipping</span>
+                    {shipping === 0 ? (
+                      <span className="font-bold text-emerald-400">FREE</span>
+                    ) : (
+                      <span className="theme-text font-medium">${shipping.toFixed(2)}</span>
+                    )}
                   </div>
                 </div>
 
                 <div className="py-6">
-                  <div className="flex justify-between items-end">
-                    <span className="text-lg font-bold text-text-light dark:text-text-dark">Total</span>
-                    <span className="font-black text-3xl text-text-light dark:text-text-dark">${grandTotal.toFixed(2)}</span>
+                  <div className="flex items-end justify-between">
+                    <span className="theme-text text-lg font-bold">Total</span>
+                    <span className="theme-text text-3xl font-black">${grandTotal.toFixed(2)}</span>
                   </div>
-                  <p className="text-xs text-text-muted-light dark:text-text-muted-dark mt-2 text-right">Inclusive of all taxes and fees</p>
+                  <p className="theme-soft mt-2 text-right text-xs">Inclusive of all taxes and fees</p>
                 </div>
 
-                <button className="w-full bg-brand-yellow text-text-light py-4 rounded-full font-black text-lg flex items-center justify-center gap-2 hover:bg-yellow-400 hover:shadow-[0_0_20px_rgba(255,215,0,0.4)] active:scale-95 transition-all group">
+                <button className="group flex w-full items-center justify-center gap-2 rounded-full bg-amber-300 py-4 text-lg font-black text-black transition hover:bg-amber-200 hover:shadow-[0_0_30px_rgba(245,197,82,0.3)] active:scale-95">
                   Proceed to Checkout
-                  <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </button>
 
-                <div className="mt-8 space-y-4 bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700">
+                <div className="theme-card-strong mt-8 space-y-4 rounded-2xl p-4">
                   {[
                     { icon: ShieldCheck, text: 'Secure 256-bit SSL encrypted payments' },
                     { icon: Truck, text: 'Free delivery on orders over $150' },
                   ].map((item, index) => {
                     const Icon = item.icon;
                     return (
-                      <div key={index} className="flex items-center gap-3 text-text-muted-light dark:text-text-muted-dark text-sm">
-                        <Icon className="h-5 w-5 text-green-500 shrink-0" />
+                      <div key={index} className="theme-muted flex items-center gap-3 text-sm">
+                        <Icon className="h-5 w-5 shrink-0 text-emerald-400" />
                         <span className="font-medium">{item.text}</span>
                       </div>
                     );

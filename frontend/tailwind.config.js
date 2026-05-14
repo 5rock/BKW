@@ -30,6 +30,8 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
+        jakarta: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+        instrument: ['"Instrument Serif"', 'Georgia', 'serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',

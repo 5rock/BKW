@@ -5,6 +5,20 @@ import { useForm } from 'react-hook-form';
 import { Eye, EyeOff, Loader2, LockKeyhole, Mail, Phone, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
 import AuthLayout from '../../components/auth/AuthLayout';
+import {
+  authCheckboxClass,
+  authCheckboxWrapClass,
+  authDividerLineClass,
+  authDividerTextClass,
+  authErrorClass,
+  authFooterLinkClass,
+  authFooterWrapClass,
+  authInlineIconClass,
+  authInputClass,
+  authLabelClass,
+  authLinkClass,
+  authTogglePasswordClass,
+} from '../../components/auth/authFieldStyles';
 import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
 import { useAuth } from '../../context/AuthContext';
 
@@ -39,25 +53,25 @@ const LoginPage = () => {
       <SocialLoginButtons mode="login" />
 
       <div className="my-6 flex items-center gap-3">
-        <div className="h-px flex-1 bg-white/12" />
-        <span className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/60">secure login</span>
-        <div className="h-px flex-1 bg-white/12" />
+        <div className={`flex-1 ${authDividerLineClass}`} />
+        <span className={authDividerTextClass}>secure login</span>
+        <div className={`flex-1 ${authDividerLineClass}`} />
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
-          <label htmlFor="identifier" className="mb-2 block text-sm font-semibold text-amber-50/80">
+          <label htmlFor="identifier" className={`mb-2 block ${authLabelClass}`}>
             Email or Mobile Number
           </label>
           <div className="relative">
-            <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-amber-200/70" />
-            <Phone className="absolute left-10 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-200/40" />
+            <Mail className={`absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${authInlineIconClass}`} />
+            <Phone className="absolute left-10 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-900/35 dark:text-amber-200/45" />
             <input
               id="identifier"
               type="text"
               autoComplete="username"
               placeholder="you@example.com or +91 98765 43210"
-              className="h-[52px] w-full rounded-lg border border-white/12 bg-black/25 py-3.5 pl-16 pr-4 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-amber-300 focus:bg-black/35 focus:ring-4 focus:ring-amber-300/10"
+              className={`${authInputClass} pl-16 pr-4`}
               {...register('identifier', {
                 required: 'Email or mobile number is required',
                 validate: (value) => {
@@ -69,42 +83,42 @@ const LoginPage = () => {
               })}
             />
           </div>
-          {errors.identifier && <p className="mt-1 text-xs text-red-300">{errors.identifier.message}</p>}
+          {errors.identifier && <p className={authErrorClass}>{errors.identifier.message}</p>}
         </div>
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <label htmlFor="password" className="text-sm font-semibold text-amber-50/80">Password</label>
-            <Link to="/forgot-password" className="text-xs font-semibold text-amber-200 hover:text-amber-100">
+            <label htmlFor="password" className={authLabelClass}>Password</label>
+            <Link to="/forgot-password" className={authLinkClass}>
               Forgot password?
             </Link>
           </div>
           <div className="relative">
-            <LockKeyhole className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-amber-200/70" />
+            <LockKeyhole className={`absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${authInlineIconClass}`} />
             <input
               id="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               placeholder="Enter your password"
-              className="h-[52px] w-full rounded-lg border border-white/12 bg-black/25 py-3.5 pl-12 pr-12 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-amber-300 focus:bg-black/35 focus:ring-4 focus:ring-amber-300/10"
+              className={`${authInputClass} pl-12 pr-12`}
               {...register('password', { required: 'Password is required' })}
             />
             <button
               type="button"
               onClick={() => setShowPassword((value) => !value)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-100/60 transition hover:text-amber-100"
+              className={`absolute right-4 top-1/2 -translate-y-1/2 ${authTogglePasswordClass}`}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
-          {errors.password && <p className="mt-1 text-xs text-red-300">{errors.password.message}</p>}
+          {errors.password && <p className={authErrorClass}>{errors.password.message}</p>}
         </div>
 
-        <label className="flex items-center gap-3 text-sm text-amber-50/70">
+        <label className={authCheckboxWrapClass}>
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-white/20 bg-black/30 text-amber-400 focus:ring-amber-300"
+            className={authCheckboxClass}
             {...register('remember')}
           />
           Remember me on this device
@@ -121,9 +135,9 @@ const LoginPage = () => {
         </motion.button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-amber-50/65">
+      <p className={authFooterWrapClass}>
         New to GoldMarket?{' '}
-        <Link to="/signup" className="font-bold text-amber-200 hover:text-amber-100">
+        <Link to="/signup" className={authFooterLinkClass}>
           Create an account
         </Link>
       </p>

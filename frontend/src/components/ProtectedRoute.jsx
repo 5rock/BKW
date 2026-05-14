@@ -17,7 +17,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 
 const Spinner = () => (
-  <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950">
+  <div className="theme-page flex min-h-screen items-center justify-center">
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -63,11 +63,11 @@ const ProtectedRoute = ({
   // Blocked account
   if (user.isBlocked) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="theme-page flex min-h-screen items-center justify-center p-6">
         <div className="text-center max-w-md">
           <span className="material-symbols-outlined text-6xl text-red-400 mb-4 block">block</span>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Account Suspended</h2>
-          <p className="text-gray-500 text-sm">
+          <h2 className="theme-text mb-2 text-2xl font-bold">Account Suspended</h2>
+          <p className="theme-muted text-sm">
             Your account has been suspended. Please contact{' '}
             <a href="mailto:support@goldmarket.com" className="text-amber-600 underline">support@goldmarket.com</a>.
           </p>

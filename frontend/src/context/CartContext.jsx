@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import toast from 'react-hot-toast';
 import { useAuth } from './AuthContext';
 import { loadCart, loadWishlist, saveCart, saveWishlist } from '../services/cartService';
+import { useNotificationStore } from '../store/notificationStore';
 
 const CartContext = createContext(null);
 
@@ -11,6 +12,7 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [wishlistIds, setWishlistIds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const addNotification = useNotificationStore((s) => s.addNotification);
 
   const persistCart = useCallback(
     async (nextItems) => {
@@ -36,7 +38,6 @@ export const CartProvider = ({ children }) => {
       setWishlistIds(wishlist);
     } catch (error) {
       console.error('Failed to load shopping state', error);
-      toast.error('Unable to load cart right now.');
     } finally {
       setLoading(false);
     }
@@ -48,6 +49,7 @@ export const CartProvider = ({ children }) => {
 
   const addItem = async (productOrId, quantity = 1, options = {}) => {
     const productId = typeof productOrId === 'string' ? productOrId : productOrId.id;
+    const productName = typeof productOrId === 'string' ? 'Product' : productOrId.title || productOrId.name || 'Product';
     const existing = cartItems.find(
       (item) =>
         item.productId === productId &&
@@ -71,21 +73,39 @@ export const CartProvider = ({ children }) => {
           },
         ];
     await persistCart(nextItems);
-    toast.success('Added to cart');
+    toast.success(`Added to cart`);
+    addNotification({
+      type: 'cart',
+      title: 'Added to cart',
+      message: `${productName} × ${quantity}`,
+    });
   };
 
   const updateItem = async (itemId, quantity) => {
-    const nextItems = cartItems.map((item) => (item.id === itemId ? { ...item, quantity: Math.max(1, quantity) } : item));
+    if (quantity <= 0) {
+      await removeItem(itemId);
+      return;
+    }
+    const nextItems = cartItems.map((item) => (item.id === itemId ? { ...item, quantity } : item));
     await persistCart(nextItems);
   };
 
   const removeItem = async (itemId) => {
+    const removed = cartItems.find((item) => item.id === itemId);
     await persistCart(cartItems.filter((item) => item.id !== itemId));
     toast.success('Removed from cart');
+    if (removed?.product) {
+      addNotification({
+        type: 'cart',
+        title: 'Removed from cart',
+        message: removed.product.title || removed.product.name,
+      });
+    }
   };
 
   const saveForLater = async (itemId, savedForLater = true) => {
     await persistCart(cartItems.map((item) => (item.id === itemId ? { ...item, savedForLater } : item)));
+    toast.success(savedForLater ? 'Saved for later' : 'Moved to cart');
   };
 
   const toggleWishlist = async (productId) => {
@@ -93,7 +113,13 @@ export const CartProvider = ({ children }) => {
       ? wishlistIds.filter((id) => id !== productId)
       : [...wishlistIds, productId];
     await persistWishlist(nextIds);
-    toast.success(nextIds.includes(productId) ? 'Saved to wishlist' : 'Removed from wishlist');
+    const added = nextIds.includes(productId);
+    toast.success(added ? 'Saved to wishlist' : 'Removed from wishlist');
+    addNotification({
+      type: 'wishlist',
+      title: added ? 'Added to wishlist' : 'Removed from wishlist',
+      message: `Product ID: ${productId}`,
+    });
   };
 
   const activeCartItems = useMemo(() => cartItems.filter((item) => !item.savedForLater), [cartItems]);

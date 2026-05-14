@@ -9,9 +9,9 @@ const trustItems = [
 ];
 
 const AuthLayout = ({ children, title, subtitle }) => (
-  <main className="relative min-h-screen overflow-hidden bg-[#090704] text-white">
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.24),transparent_34%),linear-gradient(135deg,#090704_0%,#221507_46%,#0d0b09_100%)]" />
-    <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:64px_64px]" />
+  <main className="theme-page relative min-h-screen overflow-hidden">
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(184,120,54,0.16),transparent_34%),linear-gradient(135deg,#f4ece4_0%,#ead8c8_48%,#f1e7dc_100%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.24),transparent_34%),linear-gradient(135deg,#090704_0%,#221507_46%,#0d0b09_100%)]" />
+    <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(61,47,38,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(61,47,38,0.05)_1px,transparent_1px)] [background-size:64px_64px] dark:[background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)]" />
 
     {[...Array(18)].map((_, index) => (
       <motion.span
@@ -30,9 +30,9 @@ const AuthLayout = ({ children, title, subtitle }) => (
       <section className="hidden px-10 py-10 lg:flex lg:flex-col lg:justify-between">
         <Link to="/" className="flex w-fit items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-lg border border-amber-300/30 bg-amber-300/15">
-            <Gem className="h-7 w-7 text-amber-200" />
+            <Gem className="h-7 w-7 text-amber-800 dark:text-amber-200" />
           </span>
-          <span className="text-2xl font-black tracking-[0.18em] text-amber-50">GOLDMARKET</span>
+          <span className="text-2xl font-black tracking-[0.18em] text-[#2d2926] dark:text-amber-50">GOLDMARKET</span>
         </Link>
 
         <motion.div
@@ -41,23 +41,23 @@ const AuthLayout = ({ children, title, subtitle }) => (
           transition={{ duration: 0.6 }}
           className="max-w-xl"
         >
-          <div className="mb-5 flex w-fit items-center gap-2 rounded-full border border-amber-200/20 bg-black/20 px-4 py-2 text-sm text-amber-100">
+          <div className="mb-5 flex w-fit items-center gap-2 rounded-full border border-amber-700/20 bg-amber-800/10 px-4 py-2 text-sm text-amber-900 dark:border-amber-200/20 dark:bg-black/20 dark:text-amber-100">
             <Sparkles className="h-4 w-4" />
             Premium gold commerce, secured end to end
           </div>
-          <h1 className="text-5xl font-black leading-tight tracking-normal text-white">
+          <h1 className="theme-text text-5xl font-black leading-tight tracking-normal">
             A private vault entrance for serious buyers and trusted sellers.
           </h1>
-          <p className="mt-6 max-w-lg text-lg leading-8 text-amber-50/72">
+          <p className="theme-muted mt-6 max-w-lg text-lg leading-8">
             Sign in to manage orders, wishlists, seller tools, and high-value transactions with a polished authentication flow.
           </p>
         </motion.div>
 
         <div className="grid max-w-2xl grid-cols-3 gap-3">
           {trustItems.map(({ icon: Icon, label }) => (
-            <div key={label} className="rounded-lg border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl">
-              <Icon className="mb-3 h-5 w-5 text-amber-200" />
-              <p className="text-sm font-semibold text-white">{label}</p>
+            <div key={label} className="theme-card rounded-lg p-4">
+              <Icon className="mb-3 h-5 w-5 text-amber-800 dark:text-amber-300" />
+              <p className="theme-text text-sm font-semibold">{label}</p>
             </div>
           ))}
         </div>
@@ -68,19 +68,19 @@ const AuthLayout = ({ children, title, subtitle }) => (
           initial={{ opacity: 0, y: 18, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.45 }}
-          className="w-full max-w-[480px] rounded-lg border border-white/15 bg-white/[0.08] p-5 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-8"
+          className="theme-card-strong w-full max-w-[480px] rounded-lg p-5 sm:p-8"
         >
           <div className="mb-7 lg:hidden">
             <Link to="/" className="flex items-center justify-center gap-2">
-              <Gem className="h-8 w-8 text-amber-200" />
-              <span className="text-xl font-black tracking-[0.16em]">GOLDMARKET</span>
+              <Gem className="h-8 w-8 text-amber-800 dark:text-amber-200" />
+              <span className="theme-text text-xl font-black tracking-[0.16em]">GOLDMARKET</span>
             </Link>
           </div>
 
           {(title || subtitle) && (
             <div className="mb-7">
-              {title && <h2 className="text-3xl font-black tracking-normal text-white">{title}</h2>}
-              {subtitle && <p className="mt-2 text-sm leading-6 text-amber-50/65">{subtitle}</p>}
+              {title && <h2 className="theme-text text-3xl font-black tracking-normal">{title}</h2>}
+              {subtitle && <p className="theme-muted mt-2 text-sm leading-6">{subtitle}</p>}
             </div>
           )}
 

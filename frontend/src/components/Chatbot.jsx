@@ -108,7 +108,7 @@ const Chatbot = () => {
         onClick={() => setIsOpen(true)}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className={`fixed bottom-6 right-6 p-4 rounded-full shadow-2xl z-50 transition-all ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'} bg-gradient-to-r from-brand-yellow to-brand-red text-white flex items-center justify-center`}
+        className={`fixed bottom-20 right-4 sm:bottom-6 sm:right-6 p-4 rounded-full shadow-2xl z-[55] transition-all ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'} bg-gradient-to-r from-amber-400 to-orange-500 text-white flex items-center justify-center`}
       >
         <MessageSquare className="h-7 w-7" />
         <span className="absolute -top-2 -right-2 bg-text-light text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-bounce">AI</span>
@@ -122,7 +122,7 @@ const Chatbot = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-6 right-6 sm:w-[380px] w-[calc(100vw-48px)] h-[550px] max-h-[80vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 flex flex-col overflow-hidden z-50"
+            className="theme-card-strong fixed bottom-20 right-4 z-[55] flex h-[480px] max-h-[75vh] w-[calc(100vw-32px)] flex-col overflow-hidden rounded-2xl sm:bottom-6 sm:right-6 sm:h-[550px] sm:max-h-[80vh] sm:w-[380px]"
           >
             {/* Header */}
             <div className="p-4 bg-gradient-to-r from-brand-yellow to-brand-red flex items-center justify-between shadow-md text-white">
@@ -146,7 +146,7 @@ const Chatbot = () => {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 dark:bg-gray-900/50">
+            <div className="flex-1 space-y-4 overflow-y-auto bg-[#f8efe6]/70 p-4 dark:bg-gray-900/50">
               {messages.map((msg) => (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
@@ -156,8 +156,8 @@ const Chatbot = () => {
                 >
                   <div className={`max-w-[80%] rounded-2xl p-3 shadow-sm ${
                     msg.sender === 'user' 
-                      ? 'bg-text-light dark:bg-gray-700 text-white rounded-br-sm' 
-                      : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-text-light dark:text-text-dark rounded-bl-sm'
+                      ? 'bg-amber-700 text-white dark:bg-gray-700 rounded-br-sm' 
+                      : 'border border-black/5 bg-[#f4ece4] text-[#2d2926] dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-bl-sm'
                   }`}>
                     {msg.image ? (
                       <img src={msg.image} alt="User upload" className="rounded-lg max-w-full h-auto mb-1" />
@@ -170,7 +170,7 @@ const Chatbot = () => {
 
               {isTyping && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-                  <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-bl-sm p-4 flex gap-1 shadow-sm">
+                  <div className="flex gap-1 rounded-2xl rounded-bl-sm border border-black/5 bg-[#f4ece4] p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
                     <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
                     <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
@@ -187,7 +187,7 @@ const Chatbot = () => {
                   <button 
                     key={i}
                     onClick={() => handleSend(prompt)}
-                    className="whitespace-nowrap text-xs bg-gray-100 dark:bg-gray-800 text-text-muted-light dark:text-text-muted-dark px-3 py-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
+                    className="whitespace-nowrap rounded-full border border-black/5 bg-[#ead9c8] px-3 py-1.5 text-xs text-[#6f5a49] transition-colors hover:bg-[#dfc8b5] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                   >
                     {prompt}
                   </button>
@@ -196,18 +196,18 @@ const Chatbot = () => {
             )}
 
             {/* Input Area */}
-            <div className="p-3 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
+            <div className="border-t border-black/5 bg-[#f4ece4] p-3 dark:border-gray-800 dark:bg-gray-900">
               <form 
                 onSubmit={(e) => { e.preventDefault(); handleSend(); }}
                 className="flex items-center gap-2 relative"
               >
-                <div className="flex-1 relative flex items-center bg-gray-100 dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700">
+                <div className="relative flex flex-1 items-center rounded-full border border-black/5 bg-[#ead9c8] dark:border-gray-700 dark:bg-gray-800">
                   <input
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder="Ask AI or upload photo..."
-                    className="flex-1 bg-transparent py-2.5 pl-4 pr-10 text-sm text-text-light dark:text-text-dark focus:outline-none"
+                    className="flex-1 bg-transparent py-2.5 pl-4 pr-10 text-sm text-[#2d2926] outline-none placeholder:text-[#8d7563] dark:text-white dark:placeholder:text-white/35"
                   />
                   <input 
                     type="file" 
@@ -219,7 +219,7 @@ const Chatbot = () => {
                   <button 
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="absolute right-2 p-1.5 text-gray-400 hover:text-brand-yellow hover:bg-yellow-50 dark:hover:bg-gray-700 rounded-full transition-colors"
+                    className="absolute right-2 rounded-full p-1.5 text-[#8d7563] transition-colors hover:bg-amber-100 hover:text-amber-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-amber-300"
                   >
                     <Camera className="h-4 w-4" />
                   </button>
@@ -227,7 +227,7 @@ const Chatbot = () => {
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || isTyping}
-                  className="w-10 h-10 rounded-full bg-text-light dark:bg-brand-yellow text-white dark:text-text-light flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black dark:hover:bg-yellow-400 transition-colors shadow-sm shrink-0"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-700 text-white shadow-sm transition-colors hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-yellow dark:text-text-light dark:hover:bg-yellow-400"
                 >
                   <Send className="h-4 w-4 ml-0.5" />
                 </button>

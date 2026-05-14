@@ -14,8 +14,11 @@ const GoogleIcon = () => (
 );
 
 const FacebookIcon = () => (
-  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
-    <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.414c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.971H15.83c-1.491 0-1.956.93-1.956 1.886v2.263h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" />
+  <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+    <path
+      fill="#1877F2"
+      d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.414c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.971H15.83c-1.491 0-1.956.93-1.956 1.886v2.263h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"
+    />
   </svg>
 );
 
@@ -67,7 +70,7 @@ const SocialLoginButtons = ({ mode = 'login' }) => {
           type="button"
           onClick={() => handleOAuth(key)}
           disabled={Boolean(busy)}
-          className="group flex h-12 items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/10 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300/50 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white/5"
+          className="group flex h-12 items-center justify-center gap-2 rounded-lg border border-black/[0.1] bg-white text-sm font-semibold text-[#1a1a1a] shadow-sm transition hover:-translate-y-0.5 hover:border-amber-600/35 hover:bg-amber-50/60 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/15 dark:bg-white/10 dark:text-white dark:shadow-none dark:hover:border-amber-300/45 dark:hover:bg-white/15"
           aria-label={`${mode === 'login' ? 'Sign in' : 'Sign up'} with ${label}`}
           title={label}
         >

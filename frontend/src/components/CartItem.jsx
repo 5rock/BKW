@@ -30,78 +30,86 @@ const CartItem = ({ item }) => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      exit={{ opacity: 0, x: -80, scale: 0.95 }}
       layout
-      className={`bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row gap-6 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 relative ${loading ? 'opacity-50 pointer-events-none' : ''}`}
+      className={`theme-card flex flex-col gap-6 rounded-2xl p-4 transition-all duration-300 hover:border-amber-600/25 dark:hover:border-amber-200/20 sm:flex-row sm:p-6 ${
+        loading ? 'pointer-events-none opacity-50' : ''
+      }`}
     >
       {/* Image */}
-      <div className="w-full sm:w-32 h-32 sm:h-32 rounded-xl overflow-hidden flex-shrink-0 relative bg-gray-50 dark:bg-gray-800">
+      <div className="relative h-32 w-full flex-shrink-0 overflow-hidden rounded-xl bg-neutral-900 sm:h-32 sm:w-32">
         <Link to={`/products/${product.id || product._id}`}>
-          <img src={product.images?.[0] || 'https://via.placeholder.com/150'} alt={product.name} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+          <img
+            src={product.images?.[0] || product.thumbnail || 'https://images.unsplash.com/photo-1607082349566-187342175e2f?auto=format&fit=crop&w=400&q=80'}
+            alt={product.name || product.title}
+            className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
+          />
         </Link>
-        {product.discount > 0 && (
-          <span className="absolute top-2 left-2 bg-brand-red text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-            -{product.discount}%
+        {(product.discount > 0 || product.discountPercent > 0) && (
+          <span className="absolute left-2 top-2 rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+            -{product.discount || product.discountPercent}%
           </span>
         )}
       </div>
 
       {/* Details */}
-      <div className="flex-grow flex flex-col justify-between">
-        <div className="flex justify-between items-start gap-4">
+      <div className="flex flex-grow flex-col justify-between">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider mb-1 font-semibold">{product.category}</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-amber-700/70 dark:text-amber-200/60">
+              {product.category}
+            </p>
             <Link to={`/products/${product.id || product._id}`}>
-              <h3 className="font-bold text-text-light dark:text-text-dark hover:text-brand-yellow transition-colors line-clamp-2 leading-tight">
-                {product.name}
+              <h3 className="theme-text line-clamp-2 font-bold leading-tight transition-colors hover:text-amber-700 dark:hover:text-amber-200">
+                {product.name || product.title}
               </h3>
             </Link>
           </div>
           <div className="text-right">
-            <span className="font-black text-xl text-text-light dark:text-text-dark whitespace-nowrap">
+            <span className="theme-text whitespace-nowrap text-xl font-black">
               ${(unitPrice * quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
             {quantity > 1 && (
-              <p className="text-xs text-text-muted-light dark:text-text-muted-dark mt-1">${unitPrice.toLocaleString()} each</p>
+              <p className="theme-soft mt-1 text-xs">${unitPrice.toLocaleString()} each</p>
             )}
           </div>
         </div>
 
-        <div className="flex items-center justify-between mt-6">
+        <div className="mt-6 flex items-center justify-between">
           {/* Quantity Controls */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 shadow-inner">
+          <div className="theme-card-strong flex items-center rounded-full">
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => handleQuantity(-1)}
-              className="p-2 hover:bg-white dark:hover:bg-gray-700 hover:shadow-md transition-all rounded-full text-text-light dark:text-text-dark"
+              className="theme-text rounded-full p-2 transition hover:bg-black/5 hover:text-amber-700 dark:hover:bg-white/10 dark:hover:text-amber-200"
             >
               <Minus className="h-4 w-4" />
             </motion.button>
-            <span className="px-4 font-bold text-text-light dark:text-text-dark min-w-[40px] text-center">{quantity}</span>
+            <span className="theme-text min-w-[40px] px-2 text-center font-black">{quantity}</span>
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => handleQuantity(1)}
-              className="p-2 hover:bg-white dark:hover:bg-gray-700 hover:shadow-md transition-all rounded-full text-text-light dark:text-text-dark"
+              className="theme-text rounded-full p-2 transition hover:bg-black/5 hover:text-amber-700 dark:hover:bg-white/10 dark:hover:text-amber-200"
             >
               <Plus className="h-4 w-4" />
             </motion.button>
           </div>
 
-          {/* Remove */}
+          {/* Actions */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => saveForLater(itemId, !item.savedForLater)}
-              className="text-text-muted-light hover:text-brand-yellow dark:text-text-muted-dark dark:hover:text-brand-yellow font-semibold text-sm flex items-center gap-1.5 transition-colors p-2 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+              className="theme-muted flex items-center gap-1.5 rounded-lg p-2 text-sm font-semibold transition-colors hover:bg-amber-700/10 hover:text-amber-800 dark:hover:bg-amber-200/10 dark:hover:text-amber-200"
             >
               <Bookmark className="h-4 w-4" />
               <span className="hidden sm:inline">{item.savedForLater ? 'Move to cart' : 'Save'}</span>
             </button>
             <button
               onClick={handleRemove}
-              className="text-text-muted-light hover:text-brand-red dark:text-text-muted-dark dark:hover:text-brand-red font-semibold text-sm flex items-center gap-1.5 transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+              className="theme-muted flex items-center gap-1.5 rounded-lg p-2 text-sm font-semibold transition-colors hover:bg-red-500/10 hover:text-red-500 dark:hover:text-red-300"
             >
               <Trash2 className="h-4 w-4" />
               <span className="hidden sm:inline">Remove</span>
