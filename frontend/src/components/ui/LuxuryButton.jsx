@@ -2,8 +2,8 @@ import { motion } from 'framer-motion';
 
 const variants = {
   gold: 'bg-gradient-to-r from-amber-200 via-yellow-500 to-amber-300 text-black shadow-[0_18px_60px_rgba(245,197,82,0.28)]',
-  ghost: 'border border-black/10 dark:border-white/15 bg-black/[0.05] dark:bg-white/10 text-gray-900 dark:text-white backdrop-blur-xl hover:bg-black/10 dark:hover:bg-white/15',
-  dark: 'bg-black text-white dark:bg-white dark:text-black hover:bg-gray-900 dark:hover:bg-amber-100',
+  ghost: 'border border-black/10 bg-white/60 text-gray-900 shadow-black/[0.03] backdrop-blur-xl hover:bg-white/90 dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/15',
+  dark: 'bg-[#111111] text-white hover:bg-[#181818] dark:bg-white dark:text-black dark:hover:bg-amber-100',
 };
 
 const LuxuryButton = ({ children, className = '', variant = 'gold', as: Component = 'button', ...props }) => (

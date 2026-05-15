@@ -20,7 +20,7 @@ const Footer = () => {
   const [subscribed, setSubscribed] = useState(false);
 
   return (
-    <footer className="relative overflow-hidden border-t border-black/[0.03] bg-[#eadfd5] pb-24 pt-16 text-gray-950 dark:border-white/10 dark:bg-[#050505] dark:text-white sm:pb-10">
+    <footer className="relative overflow-hidden border-t border-black/[0.03] bg-[#eadfd5] pb-24 pt-16 text-gray-950 dark:border-white/10 dark:bg-[#0a0a0a] dark:text-white sm:pb-10">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300 to-transparent" />
       <div className="absolute left-1/2 top-0 h-80 w-[40rem] -translate-x-1/2 rounded-full bg-amber-300/10 blur-3xl" />
 

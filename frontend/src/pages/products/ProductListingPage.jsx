@@ -128,27 +128,27 @@ const ProductListingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4ece4] pt-28 pb-20 dark:bg-[#050505] transition-colors duration-500 text-[#2d2926] dark:text-white">
+    <div className="min-h-screen bg-[#f4ece4] pt-28 pb-20 text-[#2d2926] transition-colors duration-500 dark:bg-[#0a0a0a] dark:text-white">
       <main className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
         {/* Header Banner */}
-        <Reveal className="mb-8 overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-r from-gray-950 via-black to-[#302406] p-6 text-white shadow-2xl shadow-black/20 md:p-10">
-          <p className="text-sm font-black uppercase tracking-[0.25em] text-amber-300">GoldMarket</p>
+        <Reveal className="mb-8 overflow-hidden rounded-[2rem] border border-black/10 bg-[#f5efe7]/85 p-6 text-black shadow-2xl shadow-black/[0.06] backdrop-blur-xl transition-all duration-300 dark:border-white/10 dark:bg-[#0a0a0a]/88 dark:text-white dark:shadow-black/30 md:p-10">
+          <p className="text-sm font-black uppercase tracking-[0.25em] text-amber-700 dark:text-amber-300">GoldMarket</p>
           <div className="mt-3 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="text-3xl font-black tracking-tight md:text-5xl">
                 {filters.category !== 'All' ? filters.category : 'Premium Product Catalog'}
               </h1>
-              <p className="mt-2 max-w-2xl text-white/50">
+              <p className="mt-2 max-w-2xl text-gray-600 dark:text-white/50">
                 Search, filter, compare, wishlist, and cart products from verified sellers.
               </p>
             </div>
             <div className="relative w-full max-w-xl">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/40" />
+              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-amber-700 dark:text-amber-200" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search products, brands, SKU..."
-                className="w-full rounded-full border border-white/15 bg-white/10 py-4 pl-12 pr-4 text-white outline-none backdrop-blur placeholder:text-white/35 focus:border-amber-400/60 focus:ring-2 focus:ring-amber-400/20"
+                className="w-full rounded-full border border-black/10 bg-white/75 py-4 pl-12 pr-4 text-black outline-none backdrop-blur transition-all duration-300 placeholder:text-gray-500 focus:border-amber-700/40 focus:ring-2 focus:ring-amber-700/10 dark:border-white/15 dark:bg-[#111111]/85 dark:text-white dark:placeholder:text-white/35 dark:focus:border-amber-400/60 dark:focus:ring-amber-400/20"
               />
             </div>
           </div>

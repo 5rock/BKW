@@ -166,7 +166,7 @@ const HomePage = () => {
   const railProducts = useMemo(() => (products.length >= 4 ? products : showcaseProducts), [products]);
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#f4ece4] text-[#2d2926] dark:bg-[#050505] dark:text-white transition-colors duration-500">
+    <div className="min-h-screen overflow-hidden bg-[#f4ece4] text-[#2d2926] transition-colors duration-500 dark:bg-[#0a0a0a] dark:text-white">
       <Suspense fallback={<div className="min-h-[92svh] bg-[#070b0a]" aria-hidden />}>
         <CinematicMarketHero />
       </Suspense>

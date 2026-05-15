@@ -145,7 +145,7 @@ const LuxuryHero = () => {
       </div>
 
       {/* Bottom gradient fade */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-20 bg-gradient-to-t from-[#f4ece4] to-transparent dark:from-[#050505]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-20 bg-gradient-to-t from-[#f4ece4] to-transparent dark:from-[#0a0a0a]" />
     </section>
   );
 };
