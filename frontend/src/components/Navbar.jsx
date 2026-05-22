@@ -85,7 +85,16 @@ const Navbar = () => {
   }, [darkMode]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 18);
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 18);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -149,23 +158,20 @@ const Navbar = () => {
 
   return (
     <>
-      <motion.header
-        initial={{ y: -90 }}
-        animate={{ y: 0 }}
-        className={`fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl transition-all duration-300 ${navbarTheme} ${
+      {/* Plain header with CSS transition — eliminates Framer Motion from persistent Navbar */}
+      <header
+        className={`fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl transition-[transform,box-shadow] duration-300 ${navbarTheme} ${
           elevated ? 'shadow-lg' : 'shadow-none'
         }`}
+        style={{ transform: 'translateY(0)' }}
       >
         <div className="luxury-shell">
           <div className="flex h-20 items-center justify-between gap-4">
             {/* Logo */}
             <Link to="/" className="group flex items-center gap-3" aria-label="GoldMarket home">
-              <motion.div
-                whileHover={{ rotate: 12, scale: 1.05 }}
-                className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-amber-100 via-yellow-500 to-orange-300 text-lg font-black text-black shadow-[0_0_40px_rgba(245,197,82,0.35)]"
-              >
+              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-amber-100 via-yellow-500 to-orange-300 text-lg font-black text-black shadow-[0_0_40px_rgba(245,197,82,0.35)] transition-transform duration-300 group-hover:rotate-12 group-hover:scale-105">
                 G
-              </motion.div>
+              </div>
               <div className="leading-none">
                 <p className="text-xl font-black tracking-tight transition-colors duration-300">GoldMarket</p>
                 <p className={`text-[10px] font-bold uppercase tracking-[0.34em] transition-colors duration-300 ${iconAccent}`}>MarketX</p>
@@ -426,7 +432,7 @@ const Navbar = () => {
             </div>
           </div>
         </div>
-      </motion.header>
+      </header>
 
       {/* Mobile Drawer */}
       <AnimatePresence>

@@ -8,14 +8,9 @@
  *   /users/{uid}  →  { name, email, role, avatar, emailVerified, ... }
  */
 
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  serverTimestamp,
-} from 'firebase/firestore';
-import { db } from './config';
+import { getFirestoreDb } from './config';
+
+const getFirestoreApi = () => import('firebase/firestore');
 
 // ── Role resolution — mirrors backend roleResolver.js
 const ADMIN_EMAILS  = (import.meta.env.VITE_ADMIN_EMAILS  || '')
@@ -40,6 +35,7 @@ export const resolveRole = (email = '') => {
  */
 export const getUserProfile = async (uid) => {
   try {
+    const [{ doc, getDoc }, db] = await Promise.all([getFirestoreApi(), getFirestoreDb()]);
     const snap = await getDoc(doc(db, 'users', uid));
     if (!snap.exists()) return null;
     return { uid, ...snap.data() };
@@ -54,6 +50,7 @@ export const getUserProfile = async (uid) => {
  * Used on registration and first OAuth login.
  */
 export const createUserProfile = async ({ uid, name, email, phone, avatar, provider = 'email', emailVerified = false }) => {
+  const [{ doc, setDoc, serverTimestamp }, db] = await Promise.all([getFirestoreApi(), getFirestoreDb()]);
   const role = resolveRole(email);
   const data = {
     name:          name || email.split('@')[0],
@@ -79,6 +76,7 @@ export const createUserProfile = async ({ uid, name, email, phone, avatar, provi
  * Role/isAdmin/isSeller can ONLY be changed via Admin SDK / Firestore rules.
  */
 export const updateUserProfile = async (uid, updates) => {
+  const [{ doc, updateDoc, serverTimestamp }, db] = await Promise.all([getFirestoreApi(), getFirestoreDb()]);
   const safe = {};
   if (updates.name)   safe.name   = updates.name;
   if (updates.avatar) safe.avatar = updates.avatar;

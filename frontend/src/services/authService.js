@@ -1,11 +1,5 @@
 import api from './api';
-import {
-  signInWithPopup,
-  sendPasswordResetEmail,
-  sendEmailVerification,
-  signOut as firebaseSignOut,
-} from 'firebase/auth';
-import { auth, googleProvider, facebookProvider, githubProvider } from '../firebase/config';
+import { getFirebaseAuth, getOAuthProviders } from '../firebase/config';
 
 export const persistSession = ({ accessToken, refreshToken, user }, remember = true) => {
   const storage = remember ? localStorage : sessionStorage;
@@ -49,21 +43,52 @@ export const resetPassword = ({ token, password, confirmPassword }) =>
 export const logoutApi = () => api.post('/auth/logout');
 
 const oAuthWithPopup = async (provider) => {
+  const [{ signInWithPopup }, auth] = await Promise.all([
+    import('firebase/auth'),
+    getFirebaseAuth(),
+  ]);
   const result = await signInWithPopup(auth, provider);
   const idToken = await result.user.getIdToken();
   const providerName = provider.providerId.split('.')[0];
   return api.post('/auth/firebase', { idToken, provider: providerName });
 };
 
-export const loginWithGoogle = () => oAuthWithPopup(googleProvider);
-export const loginWithFacebook = () => oAuthWithPopup(facebookProvider);
-export const loginWithGithub = () => oAuthWithPopup(githubProvider);
+export const loginWithGoogle = async () => {
+  const { googleProvider } = await getOAuthProviders();
+  return oAuthWithPopup(googleProvider);
+};
 
-export const sendFirebasePasswordReset = (email) => sendPasswordResetEmail(auth, email);
+export const loginWithFacebook = async () => {
+  const { facebookProvider } = await getOAuthProviders();
+  return oAuthWithPopup(facebookProvider);
+};
+
+export const loginWithGithub = async () => {
+  const { githubProvider } = await getOAuthProviders();
+  return oAuthWithPopup(githubProvider);
+};
+
+export const sendFirebasePasswordReset = async (email) => {
+  const [{ sendPasswordResetEmail }, auth] = await Promise.all([
+    import('firebase/auth'),
+    getFirebaseAuth(),
+  ]);
+  return sendPasswordResetEmail(auth, email);
+};
 export const sendPasswordReset = sendFirebasePasswordReset;
 
 export const resendVerificationEmail = async () => {
+  const [{ sendEmailVerification }, auth] = await Promise.all([
+    import('firebase/auth'),
+    getFirebaseAuth(),
+  ]);
   if (auth.currentUser) await sendEmailVerification(auth.currentUser);
 };
 
-export const firebaseLogout = () => firebaseSignOut(auth);
+export const firebaseLogout = async () => {
+  const [{ signOut }, auth] = await Promise.all([
+    import('firebase/auth'),
+    getFirebaseAuth(),
+  ]);
+  return signOut(auth);
+};
