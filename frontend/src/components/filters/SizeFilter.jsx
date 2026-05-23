@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { CLOTHING_SIZES, SHOE_SIZES } from './filterConfig';
 
 const SizeGroup = ({ title, sizes, selected, onToggle, counts }) => (
@@ -8,13 +7,11 @@ const SizeGroup = ({ title, sizes, selected, onToggle, counts }) => (
       {sizes.map((size) => {
         const active = selected.includes(size);
         return (
-          <motion.button
+          <button
             key={size}
             type="button"
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.95 }}
             onClick={() => onToggle(size)}
-            className={`min-h-11 rounded-2xl border text-xs font-black transition ${
+            className={`min-h-11 rounded-2xl border text-xs font-black transition-[background-color,border-color,color,transform] hover:-translate-y-0.5 active:scale-95 ${
               active
                 ? 'border-gray-950 bg-gray-950 text-brand-yellow shadow-lg shadow-black/10 dark:border-brand-yellow dark:bg-brand-yellow dark:text-gray-950'
                 : 'border-gray-200 bg-white text-gray-600 hover:border-amber-300 hover:bg-amber-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-amber-300/10'
@@ -22,7 +19,7 @@ const SizeGroup = ({ title, sizes, selected, onToggle, counts }) => (
             title={`${size} (${counts[size] || 0})`}
           >
             {size}
-          </motion.button>
+          </button>
         );
       })}
     </div>

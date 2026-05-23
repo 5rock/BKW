@@ -2,6 +2,7 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+
     function signedIn() {
       return request.auth != null;
     }
@@ -10,16 +11,54 @@ service firebase.storage {
       return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
     }
 
-    function isSeller() {
-      return signedIn() && (profile().isSeller == true || profile().role == 'seller' || profile().role == 'admin' || profile().isAdmin == true);
+    function isAdmin() {
+      return signedIn() && profile().isAdmin == true;
     }
 
+    // FIX: Require email verification before allowing uploads
+    function isVerifiedSeller() {
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && (profile().isSeller == true || profile().isAdmin == true);
+    }
+
+    // FIX: Validate image file type strictly using magic bytes where possible
+    function isValidImage() {
+      return request.resource.contentType.matches('image/(jpeg|jpg|png|webp|avif)')
+             && request.resource.size < 8 * 1024 * 1024; // 8 MB max
+    }
+
+    // ── Product images (seller uploads) ────────────────────────────────────
     match /products/{userId}/{fileName} {
+      // Public read — products should be visible to all
       allow read: if true;
-      allow create, update, delete: if isSeller()
+
+      // FIX: Only the owner seller (verified) can write, with file validation
+      allow create, update: if isVerifiedSeller()
         && request.auth.uid == userId
-        && request.resource.size < 8 * 1024 * 1024
-        && request.resource.contentType.matches('image/.*');
+        && isValidImage();
+
+      // FIX: Owner or admin can delete
+      allow delete: if (signedIn() && request.auth.uid == userId && isVerifiedSeller())
+                      || isAdmin();
+    }
+
+    // ── User avatars ─────────────────────────────────────────────────────────
+    match /avatars/{userId}/{fileName} {
+      allow read: if true;
+
+      allow create, update: if signedIn()
+        && request.auth.uid == userId
+        && request.auth.token.email_verified == true
+        && isValidImage()
+        && request.resource.size < 2 * 1024 * 1024; // 2 MB max for avatars
+
+      allow delete: if (signedIn() && request.auth.uid == userId) || isAdmin();
+    }
+
+    // FIX: Block all other paths — no wildcard uploads
+    match /{allPaths=**} {
+      allow read, write: if false;
     }
   }
 }

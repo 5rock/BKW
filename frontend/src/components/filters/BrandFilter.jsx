@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { Check, Search } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { BRAND_OPTIONS } from './filterConfig';
 
 const BrandFilter = ({ selected = [], onToggle, counts = {} }) => {
@@ -23,19 +22,14 @@ const BrandFilter = ({ selected = [], onToggle, counts = {} }) => {
       </div>
 
       <div className="max-h-64 space-y-1 overflow-y-auto pr-1 no-scrollbar">
-        <AnimatePresence initial={false}>
           {filteredBrands.map((brand) => {
             const active = selected.includes(brand.label);
             return (
-              <motion.button
+              <button
                 key={brand.label}
                 type="button"
-                layout
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
                 onClick={() => onToggle(brand.label)}
-                className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition ${
+                className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-[background-color,color,box-shadow,transform] hover:translate-x-0.5 ${
                   active ? 'bg-gray-950 text-white shadow-lg shadow-black/10 dark:bg-white dark:text-gray-950' : 'hover:bg-gray-50 dark:hover:bg-white/5'
                 }`}
               >
@@ -49,10 +43,9 @@ const BrandFilter = ({ selected = [], onToggle, counts = {} }) => {
                 <span className={`grid h-5 w-5 place-items-center rounded-md border ${active ? 'border-brand-yellow bg-brand-yellow text-gray-950' : 'border-gray-300 dark:border-white/20'}`}>
                   {active && <Check className="h-3.5 w-3.5" />}
                 </span>
-              </motion.button>
+              </button>
             );
           })}
-        </AnimatePresence>
       </div>
     </div>
   );

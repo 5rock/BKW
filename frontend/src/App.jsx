@@ -5,12 +5,11 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
-import IdleMount from './components/performance/IdleMount';
 
 // ─── Persistent layout components ──────────────────────────────────────────
 const Navbar  = lazy(() => import('./components/Navbar'));
 const Footer  = lazy(() => import('./components/Footer'));
-const Chatbot = lazy(() => import('./components/Chatbot'));
+const ChatbotLauncher = lazy(() => import('./components/ChatbotLauncher'));
 
 // ─── Route-level pages (code-split per route) ──────────────────────────────
 const HomePage           = lazy(() => import('./pages/HomePage'));
@@ -63,12 +62,10 @@ const Layout = ({ children }) => (
     <Suspense fallback={null}>
       <Footer />
     </Suspense>
-    {/* Chatbot deferred until browser is idle — never blocks LCP */}
-    <IdleMount timeout={2500}>
-      <Suspense fallback={null}>
-        <Chatbot />
-      </Suspense>
-    </IdleMount>
+    {/* Chatbot code loads only after first user interaction. */}
+    <Suspense fallback={null}>
+      <ChatbotLauncher />
+    </Suspense>
   </div>
 );
 

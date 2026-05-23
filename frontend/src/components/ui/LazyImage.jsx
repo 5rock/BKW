@@ -1,96 +1,107 @@
-import { memo, useState, useEffect } from 'react';
-
-const DEFAULT_FALLBACK =
-  'https://images.unsplash.com/photo-1607082349566-187342175e2f?auto=format&fit=crop&w=900&q=75&fm=webp';
-
 /**
- * Appends Unsplash optimization parameters to cut image payload.
- * - fm=webp   → WebP format where supported
- * - q=75      → Sufficient quality at reduced size
- * - auto=format → Unsplash CDN chooses best format per browser
- */
-const optimizeUnsplash = (url) => {
-  if (!url || !url.includes('images.unsplash.com')) return url;
-  const u = new URL(url);
-  if (!u.searchParams.has('fm')) u.searchParams.set('fm', 'webp');
-  if (!u.searchParams.has('q')) u.searchParams.set('q', '75');
-  if (!u.searchParams.has('auto')) u.searchParams.set('auto', 'format');
-  return u.toString();
-};
-
-/**
- * LazyImage — production-grade lazy image with shimmer placeholder.
+ * LazyImage.jsx — GoldMarket
  *
- * Props:
- *   priority  {boolean}  — Set true for above-the-fold / LCP images.
- *                          Enables eager loading + fetchpriority="high".
- *   src       {string}   — Image URL (Unsplash URLs are auto-optimized).
- *   alt       {string}   — Alt text (required for accessibility).
- *   sizes     {string}   — Responsive sizes hint.
- *   width/height         — Explicit dimensions prevent CLS.
+ * FIX: Added responsive srcset so the browser fetches the right image size.
+ *      Lighthouse flagged images served at 900px being rendered at 183-275px —
+ *      wasting 436 KiB of image data.
+ * FIX: Added explicit width/height to prevent layout shift (CLS).
+ * FIX: fetchpriority="high" only for above-the-fold images (hero).
  */
-const LazyImage = memo(({
+
+import { useRef, useState, useEffect } from 'react';
+
+const LazyImage = ({
   src,
   alt = '',
   className = '',
   containerClassName = '',
-  fallbackSrc = DEFAULT_FALLBACK,
-  sizes = '(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 90vw',
-  priority = false,
-  width,
-  height,
-  ...props
+  width = 390,
+  height = 520,
+  sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+  priority = false, // Set true only for above-the-fold images (e.g. hero)
+  objectFit = 'cover',
+  ...rest
 }) => {
-  const optimized = optimizeUnsplash(src) || optimizeUnsplash(fallbackSrc);
-  const [imgSrc, setImgSrc] = useState(optimized);
+  const imgRef = useRef(null);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 
+  // Build responsive srcset from Unsplash URLs automatically
+  // Unsplash supports ?w= param for on-the-fly resizing
+  const buildSrcSet = (url) => {
+    if (!url || !url.includes('unsplash.com')) return undefined;
+    const base = url.split('?')[0];
+    return [200, 400, 600, 800, 1200]
+      .map((w) => `${base}?auto=format&fm=webp&fit=crop&w=${w}&q=75 ${w}w`)
+      .join(', ');
+  };
+
+  const srcSet = buildSrcSet(src);
+
+  // Intersection Observer for lazy loading (non-priority images)
   useEffect(() => {
-    const next = optimizeUnsplash(src) || optimizeUnsplash(fallbackSrc);
-    setImgSrc(next);
-    setLoaded(false);
-    setError(false);
-  }, [src, fallbackSrc]);
+    if (priority || !imgRef.current) return;
+    if (!('IntersectionObserver' in window)) {
+      setLoaded(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          observer.disconnect();
+          setLoaded(true);
+        }
+      },
+      { rootMargin: '200px' } // Start loading 200px before it's visible
+    );
+
+    observer.observe(imgRef.current);
+    return () => observer.disconnect();
+  }, [priority]);
+
+  if (error) {
+    return (
+      <div
+        ref={imgRef}
+        className={`flex h-full w-full items-center justify-center bg-gray-200 dark:bg-gray-800 ${containerClassName}`}
+        style={{ width, height }}
+        aria-label={alt}
+        role="img"
+      >
+        <span className="text-xs text-gray-400">Image unavailable</span>
+      </div>
+    );
+  }
 
   return (
     <div
-      className={`absolute inset-0 h-full w-full overflow-hidden bg-black/5 dark:bg-white/[0.02] ${containerClassName}`}
+      ref={imgRef}
+      className={`relative h-full w-full overflow-hidden ${containerClassName}`}
+      style={{ aspectRatio: width && height ? `${width} / ${height}` : undefined }}
     >
-      {/* Shimmer skeleton — only rendered while image hasn't loaded */}
-      {!loaded && !error && (
-        <div className="absolute inset-0 z-0 bg-neutral-100 dark:bg-neutral-900/40">
-          <div className="shimmer h-full w-full" />
-        </div>
-      )}
-
       <img
-        src={imgSrc}
+        // FIX: Don't set src until visible (unless priority)
+        src={priority || loaded ? src : undefined}
+        srcSet={priority || loaded ? srcSet : undefined}
+        sizes={priority || loaded ? sizes : undefined}
         alt={alt}
-        /* Priority images (LCP) load eagerly with high fetchpriority.
-           Below-fold images use native lazy loading for network savings. */
-        loading={priority ? 'eager' : 'lazy'}
-        fetchpriority={priority ? 'high' : 'auto'}
-        decoding={priority ? 'sync' : 'async'}
-        sizes={sizes}
+        // FIX: Explicit dimensions prevent layout shift
         width={width}
         height={height}
+        className={`h-full w-full transition-opacity duration-300 ${loaded || priority ? 'opacity-100' : 'opacity-0'} ${className}`}
+        style={{ objectFit }}
+        // FIX: loading="eager" for priority images, "lazy" for the rest
+        loading={priority ? 'eager' : 'lazy'}
+        decoding={priority ? 'sync' : 'async'}
+        // FIX: fetchpriority for LCP element
+        fetchPriority={priority ? 'high' : 'auto'}
         onLoad={() => setLoaded(true)}
-        onError={() => {
-          if (!error) {
-            setImgSrc(optimizeUnsplash(fallbackSrc));
-            setError(true);
-          }
-        }}
-        className={`absolute inset-0 z-10 h-full w-full object-cover transition-opacity duration-500 ${
-          loaded ? 'opacity-100' : 'opacity-0'
-        } ${className}`}
-        {...props}
+        onError={() => setError(true)}
+        {...rest}
       />
     </div>
   );
-});
-
-LazyImage.displayName = 'LazyImage';
+};
 
 export default LazyImage;

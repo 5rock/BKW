@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import {
   Bell,
   CheckCheck,
@@ -138,8 +137,8 @@ const Navbar = () => {
   const isHomePage = pathname === '/';
   const elevated = scrolled || !isHomePage;
   const navbarTheme = darkMode
-    ? 'border-white/10 bg-[#0a0a0a]/90 text-white shadow-[0_18px_55px_rgba(0,0,0,0.32)]'
-    : 'border-black/10 bg-[#f5efe7]/90 text-black shadow-[0_18px_55px_rgba(78,56,36,0.08)]';
+    ? 'border-white/10 bg-[#0a0a0a]/90 text-white'
+    : 'border-black/10 bg-[#f5efe7]/90 text-black';
   const pillSurface = darkMode
     ? 'border-white/10 bg-white/[0.07] text-white shadow-black/20 hover:bg-white/10'
     : 'border-black/10 bg-white/60 text-black shadow-black/[0.035] hover:bg-white/90';
@@ -159,11 +158,14 @@ const Navbar = () => {
     <>
       {/* Plain header with CSS transition — eliminates Framer Motion from persistent Navbar */}
       <header
-        className={`fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl transition-[transform,box-shadow] duration-300 ${navbarTheme} ${
-          elevated ? 'shadow-lg' : 'shadow-none'
-        }`}
+        className={`fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl transition-transform duration-300 ${navbarTheme}`}
         style={{ transform: 'translateY(0)' }}
       >
+        <div
+          className="pointer-events-none absolute inset-0 shadow-[0_18px_55px_rgba(0,0,0,0.28)] transition-opacity duration-300"
+          style={{ opacity: elevated ? 1 : 0 }}
+          aria-hidden
+        />
         <div className="luxury-shell">
           <div className="flex h-20 items-center justify-between gap-4">
             {/* Logo */}
@@ -232,27 +234,16 @@ const Navbar = () => {
                   aria-label="Notifications"
                 >
                   <Bell className="h-5 w-5" />
-                  <AnimatePresence>
-                    {unreadCount > 0 && (
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
-                        className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[10px] font-black text-white"
-                      >
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
+                  {unreadCount > 0 && (
+                    <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[10px] font-black text-white animate-[badgePop_180ms_ease-out]">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </button>
 
-                <AnimatePresence>
-                  {notifOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.96 }}
-                      className={`absolute right-0 mt-3 w-80 overflow-hidden rounded-[2rem] border shadow-2xl backdrop-blur-2xl transition-all duration-300 ${dropdownSurface}`}
+                {notifOpen && (
+                    <div
+                      className={`absolute right-0 mt-3 w-80 overflow-hidden rounded-[2rem] border shadow-2xl backdrop-blur-2xl animate-[menuIn_160ms_ease-out] ${dropdownSurface}`}
                       data-dropdown
                     >
                       <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 p-5">
@@ -316,9 +307,8 @@ const Navbar = () => {
                           ))
                         )}
                       </div>
-                    </motion.div>
+                    </div>
                   )}
-                </AnimatePresence>
               </div>
 
                {/* Wishlist */}
@@ -337,19 +327,14 @@ const Navbar = () => {
                 aria-label="Cart"
               >
                 <ShoppingCart className="h-5 w-5" />
-                <AnimatePresence>
-                  {cartCount > 0 && (
-                    <motion.span
-                      key={cartCount}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: cartBounce ? [1, 1.3, 1] : 1 }}
-                      exit={{ scale: 0 }}
-                      className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-amber-300 px-1 text-[10px] font-black text-black"
-                    >
-                      {cartCount > 9 ? '9+' : cartCount}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+                {cartCount > 0 && (
+                  <span
+                    key={cartCount}
+                    className={`absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-amber-300 px-1 text-[10px] font-black text-black ${cartBounce ? 'animate-[badgePop_600ms_ease-out]' : ''}`}
+                  >
+                    {cartCount > 9 ? '9+' : cartCount}
+                  </span>
+                )}
               </Link>
 
               {/* User Menu */}
@@ -368,13 +353,9 @@ const Navbar = () => {
                     </span>
                     <span className="max-w-24 truncate text-sm font-bold">{user.name?.split(' ')[0] || 'Account'}</span>
                   </button>
-                  <AnimatePresence>
-                    {userOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.96 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.96 }}
-                        className={`absolute right-0 mt-3 w-64 overflow-hidden rounded-3xl border shadow-2xl backdrop-blur-2xl transition-all duration-300 ${dropdownSurface}`}
+                  {userOpen && (
+                      <div
+                        className={`absolute right-0 mt-3 w-64 overflow-hidden rounded-3xl border shadow-2xl backdrop-blur-2xl animate-[menuIn_160ms_ease-out] ${dropdownSurface}`}
                         data-dropdown
                       >
                         <div className="border-b border-black/5 dark:border-white/10 p-5">
@@ -405,9 +386,8 @@ const Navbar = () => {
                             <LogOut className="h-4 w-4" /> Sign out
                           </button>
                         </div>
-                      </motion.div>
+                      </div>
                     )}
-                  </AnimatePresence>
                 </div>
               ) : (
                 <Link
@@ -434,21 +414,9 @@ const Navbar = () => {
       </header>
 
       {/* Mobile Drawer */}
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-[#0a0a0a]/70 backdrop-blur-sm md:hidden"
-          >
-            <motion.aside
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 260 }}
-              className={`ml-auto flex h-full w-[88%] max-w-sm flex-col border-l p-6 shadow-2xl backdrop-blur-xl transition-all duration-300 ${dropdownSurface}`}
-            >
+      {menuOpen && (
+          <div className="fixed inset-0 z-[60] bg-[#0a0a0a]/70 backdrop-blur-sm animate-[fadeIn_140ms_ease-out] md:hidden">
+            <aside className={`ml-auto flex h-full w-[88%] max-w-sm flex-col border-l p-6 shadow-2xl backdrop-blur-xl animate-[drawerIn_220ms_cubic-bezier(0.22,1,0.36,1)] ${dropdownSurface}`}>
               <div className="mb-8 flex items-center justify-between">
                 <span className="text-lg font-black">MarketX Menu</span>
                 <button onClick={() => setMenuOpen(false)} className={`rounded-full p-2.5 ${pillSurface}`}>
@@ -494,10 +462,9 @@ const Navbar = () => {
                   </Link>
                 )}
               </div>
-            </motion.aside>
-          </motion.div>
+            </aside>
+          </div>
         )}
-      </AnimatePresence>
 
       {/* Mobile Bottom Nav */}
       <nav className={`fixed inset-x-3 bottom-3 z-50 grid grid-cols-4 rounded-[2rem] border p-2 shadow-2xl backdrop-blur-xl transition-all duration-300 sm:hidden ${dropdownSurface}`}>

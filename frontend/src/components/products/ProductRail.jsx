@@ -1,10 +1,6 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { FreeMode } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/free-mode';
 import ProductCard from './ProductCard';
 import Reveal from '../animations/Reveal';
 
@@ -39,23 +35,16 @@ const ProductRail = memo(({ title, eyebrow, copy, products = [] }) => (
         View all <ArrowRight className="h-4 w-4" />
       </Link>
     </Reveal>
-    <Swiper
-      modules={[FreeMode]}
-      freeMode
-      slidesPerView={1.2}
-      spaceBetween={24}
-      breakpoints={{
-        640: { slidesPerView: 2.2 },
-        1024: { slidesPerView: 3.2 },
-        1280: { slidesPerView: 4 },
-      }}
-    >
+    <div className="-mx-4 flex min-h-[31rem] snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 scroll-smooth no-scrollbar sm:-mx-6 sm:min-h-[34rem] sm:px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0 xl:grid-cols-4">
       {products.map((product) => (
-        <SwiperSlide key={product.id || product._id} className="h-auto pb-2">
+        <div
+          key={product.id || product._id}
+          className="w-[82vw] shrink-0 snap-start pb-2 sm:w-[44vw] lg:w-auto"
+        >
           <ProductCard product={product} />
-        </SwiperSlide>
+        </div>
       ))}
-    </Swiper>
+    </div>
   </section>
 ));
 

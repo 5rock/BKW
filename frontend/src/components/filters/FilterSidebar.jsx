@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { Check, Filter, RotateCcw, Search } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { ADVANCED_FILTERS, CATEGORY_OPTIONS } from './filterConfig';
 import FilterSection from './FilterSection';
 import PriceSlider from './PriceSlider';
@@ -10,12 +9,10 @@ import ColorFilter from './ColorFilter';
 import SizeFilter from './SizeFilter';
 
 const DiscountButton = ({ value, active, onClick, count }) => (
-  <motion.button
+  <button
     type="button"
-    whileHover={{ y: -2 }}
-    whileTap={{ scale: 0.96 }}
     onClick={onClick}
-    className={`rounded-2xl border px-3 py-2 text-sm font-black transition ${
+    className={`rounded-2xl border px-3 py-2 text-sm font-black transition-[background-color,border-color,color,transform] hover:-translate-y-0.5 active:scale-95 ${
       active
         ? 'border-gray-950 bg-gray-950 text-amber-300 dark:border-amber-300 dark:bg-amber-300 dark:text-gray-950'
         : 'border-black/5 bg-white text-gray-600 hover:border-amber-600/30 hover:bg-amber-600/[0.03] dark:border-white/10 dark:bg-white/5 dark:text-gray-200'
@@ -23,7 +20,7 @@ const DiscountButton = ({ value, active, onClick, count }) => (
   >
     {value}%+
     <span className="ml-1 text-[11px] font-bold opacity-60">({count || 0})</span>
-  </motion.button>
+  </button>
 );
 
 const FilterSidebar = ({
@@ -43,11 +40,7 @@ const FilterSidebar = ({
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-[2.5rem] border border-black/[0.03] bg-white/70 p-6 shadow-xl shadow-black/[0.02] backdrop-blur-3xl dark:border-white/10 dark:bg-gray-950/75 dark:shadow-none"
-    >
+    <div className="relative overflow-hidden rounded-[2.5rem] border border-black/[0.03] bg-white/70 p-6 shadow-xl shadow-black/[0.02] backdrop-blur-3xl animate-[fadeSlideUp_220ms_ease-out] dark:border-white/10 dark:bg-gray-950/75 dark:shadow-none">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-amber-600/5 to-transparent dark:from-amber-200/10" />
       <div className="relative space-y-6">
         <div className="flex items-center justify-between gap-3">
@@ -57,16 +50,14 @@ const FilterSidebar = ({
               <Filter className="h-5 w-5" /> Filters
             </h2>
           </div>
-          <motion.button
+          <button
             type="button"
-            whileHover={{ rotate: -12, scale: 1.05 }}
-            whileTap={{ scale: 0.94 }}
             onClick={onReset}
-            className="grid h-10 w-10 place-items-center rounded-2xl border border-black/5 bg-black/[0.03] text-gray-500 transition hover:bg-red-500/10 hover:text-red-600 dark:border-white/10 dark:bg-white/5"
+            className="grid h-10 w-10 place-items-center rounded-2xl border border-black/5 bg-black/[0.03] text-gray-500 transition-[background-color,color,transform] hover:-rotate-12 hover:scale-105 hover:bg-red-500/10 hover:text-red-600 active:scale-95 dark:border-white/10 dark:bg-white/5"
             aria-label="Reset filters"
           >
             <RotateCcw className="h-4 w-4" />
-          </motion.button>
+          </button>
         </div>
 
         {isLoading && (
@@ -89,19 +80,14 @@ const FilterSidebar = ({
               />
             </div>
             <div className="space-y-1">
-              <AnimatePresence initial={false}>
                 {categoryOptions.map(({ label, icon: Icon }) => {
                   const active = filters.category === label;
                   return (
-                    <motion.button
+                    <button
                       key={label}
                       type="button"
-                      layout
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
                       onClick={() => setFilter('category', label)}
-                      className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition ${
+                      className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-[background-color,color,box-shadow,transform] hover:translate-x-0.5 ${
                         active ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/10 dark:bg-white dark:text-gray-950' : 'hover:bg-black/[0.03] dark:hover:bg-white/5'
                       }`}
                     >
@@ -112,10 +98,9 @@ const FilterSidebar = ({
                       <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${active ? 'bg-white/15 dark:bg-gray-950/10' : 'bg-black/[0.05] text-gray-500 dark:bg-white/10 dark:text-gray-300'}`}>
                         {facets.categories?.[label] || (label === 'All' ? facets.total || 0 : 0)}
                       </span>
-                    </motion.button>
+                    </button>
                   );
                 })}
-              </AnimatePresence>
             </div>
           </div>
         </FilterSection>
@@ -182,12 +167,11 @@ const FilterSidebar = ({
             {ADVANCED_FILTERS.map(({ key, label, icon: Icon }) => {
               const active = filters[key];
               return (
-                <motion.button
+                <button
                   key={key}
                   type="button"
-                  whileHover={{ x: 3 }}
                   onClick={() => toggleBooleanFilter(key)}
-                  className={`flex w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition ${
+                  className={`flex w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition-[background-color,border-color,color,box-shadow,transform] hover:translate-x-0.5 ${
                     active
                       ? 'border-amber-600/30 bg-amber-600/[0.05] text-gray-950 shadow-sm dark:border-amber-300/30 dark:bg-amber-300/10 dark:text-white'
                       : 'border-black/5 bg-white text-gray-600 hover:bg-black/[0.03] dark:border-white/10 dark:bg-white/5 dark:text-gray-200'
@@ -198,13 +182,13 @@ const FilterSidebar = ({
                   <span className={`grid h-5 w-5 place-items-center rounded-md border ${active ? 'border-amber-600 bg-amber-600 text-white dark:border-amber-400 dark:bg-amber-400 dark:text-gray-950' : 'border-black/10 dark:border-white/20'}`}>
                     {active && <Check className="h-3.5 w-3.5" />}
                   </span>
-                </motion.button>
+                </button>
               );
             })}
           </div>
         </FilterSection>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

@@ -1,6 +1,5 @@
 import { memo, useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Eye, Heart, ShoppingCart, Sparkles, Zap } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { money, normalizeProduct } from '../../utils/productUtils';
@@ -115,6 +114,8 @@ const ProductCard = memo(({ product, onQuickView }) => {
           <LazyImage
             src={primaryImage}
             alt={item.title}
+            width={390}
+            height={520}
             containerClassName={`absolute inset-0 transition-opacity duration-700 ${altImage !== primaryImage ? 'group-hover:opacity-0' : ''}`}
             className="transition-transform duration-700 group-hover:scale-110"
           />
@@ -122,6 +123,8 @@ const ProductCard = memo(({ product, onQuickView }) => {
             <LazyImage
               src={altImage}
               alt=""
+              width={390}
+              height={520}
               containerClassName="absolute inset-0 opacity-0 transition-opacity duration-700 group-hover:opacity-100"
               className="scale-105 transition-transform duration-700 group-hover:scale-100"
             />
@@ -228,26 +231,17 @@ const ProductCard = memo(({ product, onQuickView }) => {
       </article>
 
       {/* Quick-view modal — CSS opacity/scale transition instead of motion.div */}
-      <AnimatePresence>
-        {quickOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[80] grid place-items-center bg-black/75 p-4 backdrop-blur-sm"
+      {quickOpen && (
+          <div
+            className="fixed inset-0 z-[80] grid place-items-center bg-black/75 p-4 backdrop-blur-sm animate-[fadeIn_160ms_ease-out]"
             onClick={() => setQuickOpen(false)}
           >
-            <motion.div
-              initial={{ y: 24, scale: 0.97 }}
-              animate={{ y: 0, scale: 1 }}
-              exit={{ y: 24, scale: 0.97 }}
-              transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
-              className="grid w-full max-w-3xl overflow-hidden rounded-[2.5rem] border border-black/5 dark:border-white/10 bg-[#f4ece4] dark:bg-[#0b0b0c] shadow-2xl md:grid-cols-[0.9fr_1fr]"
+            <div
+              className="grid w-full max-w-3xl overflow-hidden rounded-[2.5rem] border border-black/5 bg-[#f4ece4] shadow-2xl animate-[menuIn_200ms_cubic-bezier(0.22,1,0.36,1)] dark:border-white/10 dark:bg-[#0b0b0c] md:grid-cols-[0.9fr_1fr]"
               onClick={(event) => event.stopPropagation()}
             >
               <div className="relative aspect-square h-72 w-full md:aspect-auto md:h-full">
-                <LazyImage src={primaryImage} alt={item.title} containerClassName="absolute inset-0" priority />
+                <LazyImage src={primaryImage} alt={item.title} width={720} height={720} containerClassName="absolute inset-0" priority />
               </div>
               <div className="p-8">
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-amber-600 dark:text-amber-200">
@@ -289,10 +283,9 @@ const ProductCard = memo(({ product, onQuickView }) => {
                   Authenticated by MarketX standards
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
     </>
   );
 });

@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Send, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -104,26 +103,17 @@ const Chatbot = () => {
   return (
     <>
       {/* Floating Button */}
-      <motion.button
+      <button
         onClick={() => setIsOpen(true)}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        className={`fixed bottom-20 right-4 sm:bottom-6 sm:right-6 p-4 rounded-full shadow-2xl z-[55] transition-all ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'} bg-gradient-to-r from-amber-400 to-orange-500 text-white flex items-center justify-center`}
+        className={`fixed bottom-20 right-4 z-[55] flex items-center justify-center rounded-full bg-gradient-to-r from-amber-400 to-orange-500 p-4 text-white shadow-2xl transition-[opacity,transform] hover:scale-110 active:scale-90 sm:bottom-6 sm:right-6 ${isOpen ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
       >
         <MessageSquare className="h-7 w-7" />
         <span className="absolute -top-2 -right-2 bg-text-light text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-bounce">AI</span>
-      </motion.button>
+      </button>
 
       {/* Chat Window */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="theme-card-strong fixed bottom-20 right-4 z-[55] flex h-[480px] max-h-[75vh] w-[calc(100vw-32px)] flex-col overflow-hidden rounded-2xl sm:bottom-6 sm:right-6 sm:h-[550px] sm:max-h-[80vh] sm:w-[380px]"
-          >
+      {isOpen && (
+          <div className="theme-card-strong fixed bottom-20 right-4 z-[55] flex h-[480px] max-h-[75vh] w-[calc(100vw-32px)] flex-col overflow-hidden rounded-2xl animate-[menuIn_220ms_cubic-bezier(0.22,1,0.36,1)] sm:bottom-6 sm:right-6 sm:h-[550px] sm:max-h-[80vh] sm:w-[380px]">
             {/* Header */}
             <div className="p-4 bg-gradient-to-r from-brand-yellow to-brand-red flex items-center justify-between shadow-md text-white">
               <div className="flex items-center gap-3">
@@ -148,11 +138,9 @@ const Chatbot = () => {
             {/* Messages Area */}
             <div className="flex-1 space-y-4 overflow-y-auto bg-[#f8efe6]/70 p-4 dark:bg-gray-900/50">
               {messages.map((msg) => (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                <div
                   key={msg.id} 
-                  className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex animate-[fadeSlideUp_180ms_ease-out] ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div className={`max-w-[80%] rounded-2xl p-3 shadow-sm ${
                     msg.sender === 'user' 
@@ -165,17 +153,17 @@ const Chatbot = () => {
                       <p className="text-sm leading-relaxed">{msg.text}</p>
                     )}
                   </div>
-                </motion.div>
+                </div>
               ))}
 
               {isTyping && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+                <div className="flex justify-start animate-[fadeIn_160ms_ease-out]">
                   <div className="flex gap-1 rounded-2xl rounded-bl-sm border border-black/5 bg-[#f4ece4] p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
                     <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
                     <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
                   </div>
-                </motion.div>
+                </div>
               )}
               <div ref={messagesEndRef} />
             </div>
@@ -233,9 +221,8 @@ const Chatbot = () => {
                 </button>
               </form>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </>
   );
 };

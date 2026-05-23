@@ -1,23 +1,8 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FreeMode } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/free-mode';
 import { categories } from '../../constants/marketplace';
 import Reveal from '../animations/Reveal';
 
-/**
- * CategoryCarousel — Swiper-based category browser.
- *
- * Performance decisions:
- * - Replaced motion.button whileHover={{ y: -8 }} with CSS hover:-translate-y-2
- *   (compositor thread — zero JS cost)
- * - Replaced staggered motion.button initial/whileInView animations with
- *   CSS animation-delay (no Framer Motion per-item JS)
- * - Memoized the whole component so it only re-renders if categories change
- * - This component is already lazy-loaded via LazyWhenVisible in HomePage
- */
 const CategoryCarousel = memo(() => {
   const navigate = useNavigate();
 
@@ -37,25 +22,11 @@ const CategoryCarousel = memo(() => {
         </p>
       </Reveal>
 
-      <Swiper
-        modules={[FreeMode]}
-        freeMode
-        slidesPerView={2.2}
-        spaceBetween={16}
-        breakpoints={{
-          640: { slidesPerView: 3.4 },
-          1024: { slidesPerView: 5.2 },
-          1280: { slidesPerView: 6.2 },
-        }}
-      >
+      <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 no-scrollbar sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-6 lg:overflow-visible lg:px-0">
         {categories.map((category, index) => {
           const Icon = category.icon;
           return (
-            <SwiperSlide key={category.name}>
-              {/*
-                CSS-only hover lift — avoids Framer Motion on each item.
-                CSS animation-delay for staggered reveal (no JS timer).
-              */}
+            <div key={category.name} className="w-[42vw] shrink-0 snap-start sm:w-[28vw] lg:w-auto">
               <button
                 onClick={() =>
                   navigate(`/products?category=${encodeURIComponent(category.name)}`)
@@ -67,12 +38,15 @@ const CategoryCarousel = memo(() => {
                   <img
                     src={category.image}
                     alt={category.name}
+                    width={220}
+                    height={220}
+                    sizes="(max-width: 640px) 42vw, (max-width: 1024px) 28vw, 183px"
                     loading="lazy"
                     decoding="async"
                     className="h-full w-full rounded-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-2 rounded-full bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  <div className="absolute bottom-4 left-1/2 grid h-11 w-11 -translate-x-1/2 place-items-center rounded-full bg-amber-400 dark:bg-amber-300 text-black shadow-xl">
+                  <div className="absolute bottom-4 left-1/2 grid h-11 w-11 -translate-x-1/2 place-items-center rounded-full bg-amber-400 text-black shadow-xl dark:bg-amber-300">
                     <Icon className="h-5 w-5" />
                   </div>
                 </div>
@@ -83,10 +57,10 @@ const CategoryCarousel = memo(() => {
                   {category.count} items
                 </p>
               </button>
-            </SwiperSlide>
+            </div>
           );
         })}
-      </Swiper>
+      </div>
     </section>
   );
 });

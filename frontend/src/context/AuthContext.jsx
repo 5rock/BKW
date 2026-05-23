@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let unsubscribe;
     let cancelled = false;
+    let triggered = false;
 
     const syncFirebaseUser = async () => {
       const [{ onAuthStateChanged }, auth] = await Promise.all([
@@ -59,14 +60,24 @@ export const AuthProvider = ({ children }) => {
       });
     };
 
-    const idleId = 'requestIdleCallback' in window
-      ? window.requestIdleCallback(syncFirebaseUser, { timeout: 2500 })
-      : window.setTimeout(syncFirebaseUser, 1200);
+    const events = ['pointerdown', 'keydown', 'touchstart', 'scroll'];
+    const trigger = () => {
+      if (triggered) return;
+      triggered = true;
+      events.forEach((eventName) => window.removeEventListener(eventName, trigger));
+      window.clearTimeout(fallbackTimer);
+      void syncFirebaseUser();
+    };
+
+    events.forEach((eventName) =>
+      window.addEventListener(eventName, trigger, { once: true, passive: true })
+    );
+    const fallbackTimer = window.setTimeout(trigger, 5000);
 
     return () => {
       cancelled = true;
-      if (typeof idleId === 'number') window.clearTimeout(idleId);
-      window.cancelIdleCallback?.(idleId);
+      events.forEach((eventName) => window.removeEventListener(eventName, trigger));
+      window.clearTimeout(fallbackTimer);
       unsubscribe?.();
     };
   }, []);

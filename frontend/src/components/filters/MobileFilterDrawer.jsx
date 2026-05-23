@@ -1,19 +1,12 @@
 import { X } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 import FilterSidebar from './FilterSidebar';
 
 const MobileFilterDrawer = ({ open, onClose, resultCount, ...filterProps }) => (
-  <AnimatePresence>
+  <>
     {open && (
-      <motion.div className="fixed inset-0 z-50 lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <div className="fixed inset-0 z-50 animate-[fadeIn_140ms_ease-out] lg:hidden">
         <button type="button" className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={onClose} aria-label="Close filters" />
-        <motion.div
-          initial={{ y: '100%' }}
-          animate={{ y: 0 }}
-          exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 30, stiffness: 260 }}
-          className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-hidden rounded-t-[2rem] bg-white shadow-2xl dark:bg-gray-950"
-        >
+        <div className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-hidden rounded-t-[2rem] bg-white shadow-2xl animate-[sheetIn_220ms_cubic-bezier(0.22,1,0.36,1)] dark:bg-gray-950">
           <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/10">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-200">Refine</p>
@@ -35,10 +28,10 @@ const MobileFilterDrawer = ({ open, onClose, resultCount, ...filterProps }) => (
               Apply filters ({resultCount})
             </button>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     )}
-  </AnimatePresence>
+  </>
 );
 
 export default MobileFilterDrawer;

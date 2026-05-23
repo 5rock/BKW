@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 
 const FilterSection = ({ title, children, defaultOpen = true, action }) => {
   const [open, setOpen] = useState(defaultOpen);
@@ -14,25 +13,17 @@ const FilterSection = ({ title, children, defaultOpen = true, action }) => {
           className="flex flex-1 items-center justify-between text-left"
         >
           <span className="text-sm font-black uppercase tracking-[0.12em] text-gray-950 dark:text-white">{title}</span>
-          <motion.span animate={{ rotate: open ? 180 : 0 }}>
+          <span className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
             <ChevronDown className="h-4 w-4 text-gray-400" />
-          </motion.span>
+          </span>
         </button>
         {action}
       </div>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-            className="overflow-hidden"
-          >
-            <div className="pt-4">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+        <div className="min-h-0 overflow-hidden">
+          <div className="pt-4">{children}</div>
+        </div>
+      </div>
     </section>
   );
 };

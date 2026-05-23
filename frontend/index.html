@@ -11,23 +11,40 @@
     <meta name="theme-color" content="#0a0a0a" />
     <title>GoldMarket - Luxury Gold &amp; Premium Goods</title>
 
-    <!-- ─── Critical preconnects ──────────────────────────────────────────── -->
+    <!-- FIX: Referrer policy — don't leak URL to third parties -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+    <!-- ─── Critical preconnects (max 4 — more hurts performance) ──────── -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://stream.mux.com" />
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
 
-    <!-- ─── Google Fonts — display=swap prevents FOUT blocking render ──── -->
-    <!-- Using only the weights actually consumed to cut transfer size -->
+    <!--
+      FIX: Google Fonts — load async with font-display=swap to fix render-blocking.
+      The trick: load CSS via <link rel=preload> then flip to stylesheet on load.
+      This removes the 920ms render-blocking penalty from Lighthouse.
+    -->
     <link
+      rel="preload"
+      as="style"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap"
-      rel="stylesheet"
+      onload="this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap"
+      />
+    </noscript>
 
-    <!-- ─── Hero poster image — preloaded so it paints immediately (LCP) ── -->
-    <link rel="preload" as="image" href="/hero.png" fetchpriority="high" />
+    <!-- FIX: Hero image preload with correct type — fixes LCP element render delay -->
+    <link rel="preload" as="image" href="/hero.png" fetchpriority="high" type="image/png" />
 
-    <!-- ─── Inline theme script — runs before first paint, zero FOUC ───── -->
+    <!--
+      FIX: Inline theme script — runs before first paint to prevent FOUC.
+      Keep this tiny — no external dependencies.
+    -->
     <script>
       (function () {
         try {

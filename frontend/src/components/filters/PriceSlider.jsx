@@ -1,5 +1,4 @@
 import { Range, getTrackBackground } from 'react-range';
-import { motion } from 'framer-motion';
 import { money } from '../../utils/productUtils';
 
 const MIN = 0;
@@ -57,16 +56,14 @@ const PriceSlider = ({ value, onChange }) => {
           renderThumb={({ props, index }) => {
             const { key, ...thumbProps } = props;
             return (
-              <motion.div
+              <div
                 key={key}
                 {...thumbProps}
-                whileHover={{ scale: 1.12 }}
-                whileTap={{ scale: 0.94 }}
-                className="grid h-6 w-6 place-items-center rounded-full border-2 border-white bg-gray-950 shadow-xl shadow-amber-500/30 outline-none ring-2 ring-amber-400"
+                className="grid h-6 w-6 place-items-center rounded-full border-2 border-white bg-gray-950 shadow-xl shadow-amber-500/30 outline-none ring-2 ring-amber-400 transition-transform hover:scale-110 active:scale-95"
                 aria-label={index === 0 ? 'Minimum price' : 'Maximum price'}
               >
                 <span className="h-2 w-2 rounded-full bg-brand-yellow" />
-              </motion.div>
+              </div>
             );
           }}
         />

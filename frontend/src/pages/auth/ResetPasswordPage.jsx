@@ -9,8 +9,7 @@
 import { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { confirmPasswordReset, verifyPasswordResetCode } from 'firebase/auth';
-import { auth } from '../../services/firebase';
+import { getFirebaseAuth } from '../../firebase/config';
 import AuthLayout from '../../components/auth/AuthLayout';
 import PasswordStrengthMeter from '../../components/auth/PasswordStrengthMeter';
 import toast from 'react-hot-toast';
@@ -47,6 +46,10 @@ const ResetPasswordPage = () => {
 
     setLoading(true);
     try {
+      const [{ confirmPasswordReset, verifyPasswordResetCode }, auth] = await Promise.all([
+        import('firebase/auth'),
+        getFirebaseAuth(),
+      ]);
       await verifyPasswordResetCode(auth, oobCode);
       await confirmPasswordReset(auth, oobCode, form.password);
       setDone(true);

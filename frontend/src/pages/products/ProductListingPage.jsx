@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import ProductCard from '../../components/products/ProductCard';
 import FilterSidebar from '../../components/filters/FilterSidebar';
@@ -198,14 +197,8 @@ const ProductListingPage = () => {
             </div>
 
             {/* Active filter chips */}
-            <AnimatePresence>
-              {appliedChips.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  className="mb-6 flex flex-wrap gap-2"
-                >
+            {appliedChips.length > 0 && (
+                <div className="mb-6 flex flex-wrap gap-2 animate-[fadeSlideUp_180ms_ease-out]">
                   {appliedChips.map((chip) => (
                     <button
                       key={`${chip.key}-${chip.value || chip.label}`}
@@ -224,9 +217,8 @@ const ProductListingPage = () => {
                   >
                     Reset all
                   </button>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
 
             {loading && <PageSectionSkeleton rows={12} />}
 
@@ -253,15 +245,13 @@ const ProductListingPage = () => {
               <>
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
                   {products.map((product, index) => (
-                    <motion.div
+                    <div
                       key={product.id || product._id}
-                      initial={{ opacity: 0, y: 14 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: Math.min(index * 0.03, 0.3) }}
-                      className="h-full will-change-transform"
+                      className="h-full opacity-0 animate-[fadeSlideUp_0.42s_ease_forwards]"
+                      style={{ animationDelay: `${Math.min(index * 24, 240)}ms` }}
                     >
                       <ProductCard product={product} />
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
                 {hasMore && (

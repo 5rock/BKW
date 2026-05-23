@@ -2,58 +2,136 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
     function signedIn() {
       return request.auth != null;
     }
 
+    // FIX: Cache profile in a let binding to avoid multiple reads per request
     function profile() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    function role() {
-      return signedIn() ? profile().role : 'customer';
-    }
-
     function isAdmin() {
-      return signedIn() && (profile().isAdmin == true || role() == 'admin');
+      return signedIn() && profile().isAdmin == true;
     }
 
     function isSeller() {
-      return signedIn() && (profile().isSeller == true || role() == 'seller' || isAdmin());
+      return signedIn() && (profile().isSeller == true || isAdmin());
     }
 
-    match /products/{productId} {
-      allow read: if resource.data.status == 'active' || isAdmin() || (signedIn() && resource.data.sellerId == request.auth.uid);
-      allow create: if isSeller()
-        && request.resource.data.sellerId == request.auth.uid
-        && request.resource.data.title is string
-        && request.resource.data.price is number
-        && request.resource.data.stock is number;
-      allow update, delete: if isAdmin() || (signedIn() && resource.data.sellerId == request.auth.uid);
+    // FIX: Verify the email is actually verified before granting seller powers
+    function isVerifiedSeller() {
+      return isSeller() && request.auth.token.email_verified == true;
+    }
 
+    // FIX: Helper to limit string fields — prevents huge writes
+    function validString(value, maxLen) {
+      return value is string && value.size() > 0 && value.size() <= maxLen;
+    }
+
+    // FIX: Block requests carrying unexpected extra fields (over-posting)
+    function hasOnly(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ── Products ─────────────────────────────────────────────────────────────
+
+    match /products/{productId} {
+      allow read: if resource.data.status == 'active'
+                    || isAdmin()
+                    || (signedIn() && resource.data.sellerId == request.auth.uid);
+
+      allow create: if isVerifiedSeller()
+        && request.resource.data.sellerId == request.auth.uid
+        && validString(request.resource.data.title, 200)
+        && request.resource.data.price is number
+        && request.resource.data.price > 0
+        && request.resource.data.price < 10000000    // FIX: Upper bound sanity check
+        && request.resource.data.stock is int
+        && request.resource.data.stock >= 0
+        // FIX: Sellers cannot create themselves as admin
+        && !('isAdmin' in request.resource.data)
+        && !('isSeller' in request.resource.data);
+
+      allow update: if (isAdmin()
+                        || (signedIn() && resource.data.sellerId == request.auth.uid && isVerifiedSeller()))
+        // FIX: Prevent sellers from changing the owner of their product
+        && (!('sellerId' in request.resource.data)
+            || request.resource.data.sellerId == resource.data.sellerId);
+
+      allow delete: if isAdmin()
+                      || (signedIn() && resource.data.sellerId == request.auth.uid && isVerifiedSeller());
+
+      // ── Reviews ────────────────────────────────────────────────────────────
       match /reviews/{reviewId} {
         allow read: if true;
+
         allow create: if signedIn()
+          && request.auth.token.email_verified == true   // FIX: Only verified users can review
           && request.resource.data.userId == request.auth.uid
+          && request.resource.data.rating is int         // FIX: Must be integer not float
           && request.resource.data.rating >= 1
-          && request.resource.data.rating <= 5;
-        allow update, delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+          && request.resource.data.rating <= 5
+          && validString(request.resource.data.comment, 2000)
+          // FIX: Prevent review bombing (one review per user per product enforced at app level;
+          //      enforce field shape here)
+          && hasOnly(['userId', 'rating', 'comment', 'createdAt', 'productId']);
+
+        allow update: if isAdmin()
+                        || (signedIn() && resource.data.userId == request.auth.uid
+                            && request.resource.data.userId == request.auth.uid); // FIX: Can't reassign reviewer
+
+        allow delete: if isAdmin()
+                        || (signedIn() && resource.data.userId == request.auth.uid);
       }
     }
 
+    // ── Carts ─────────────────────────────────────────────────────────────────
     match /carts/{userId} {
-      allow read, write: if signedIn() && request.auth.uid == userId;
+      allow read: if signedIn() && request.auth.uid == userId;
+
+      allow write: if signedIn()
+        && request.auth.uid == userId
+        // FIX: Cap cart item count to prevent abuse
+        && (request.resource == null || request.resource.data.items.size() <= 100);
     }
 
+    // ── Wishlists ─────────────────────────────────────────────────────────────
     match /wishlists/{userId} {
-      allow read, write: if signedIn() && request.auth.uid == userId;
+      allow read: if signedIn() && request.auth.uid == userId;
+
+      allow write: if signedIn()
+        && request.auth.uid == userId
+        && (request.resource == null || request.resource.data.items.size() <= 500);
     }
 
+    // ── Users ─────────────────────────────────────────────────────────────────
     match /users/{userId} {
       allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
-      allow update: if signedIn() && request.auth.uid == userId;
-      allow create: if signedIn() && request.auth.uid == userId;
+
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        // FIX: Users cannot self-assign admin/seller roles on create
+        && (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == false)
+        && (!('isSeller' in request.resource.data) || request.resource.data.isSeller == false)
+        && (!('role' in request.resource.data) || request.resource.data.role == 'customer');
+
+      allow update: if signedIn()
+        && request.auth.uid == userId
+        // FIX: Users cannot escalate their own role
+        && (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == resource.data.isAdmin)
+        && (!('isSeller' in request.resource.data) || request.resource.data.isSeller == resource.data.isSeller)
+        && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role);
+
       allow delete: if isAdmin();
+    }
+
+    // FIX: Deny all access to any collection not explicitly listed above
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

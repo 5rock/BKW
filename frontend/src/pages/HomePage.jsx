@@ -115,7 +115,14 @@ const FlashSale = memo(({ products }) => {
                   className="group block rounded-[1.8rem] border border-black/5 dark:border-white/10 bg-white/40 dark:bg-black/40 p-4 backdrop-blur-xl transition-[border-color,background-color,transform] duration-300 hover:-translate-y-1 hover:border-amber-600/20 dark:hover:border-amber-200/30 hover:bg-white/60 dark:hover:bg-black/60 shadow-xl shadow-black/[0.02] dark:shadow-none"
                 >
                   <div className="relative aspect-[5/4] overflow-hidden rounded-[1rem]">
-                    <LazyImage src={img} alt={item.title} containerClassName="absolute inset-0" className="transition-transform duration-500 group-hover:scale-105" />
+                    <LazyImage
+                      src={img}
+                      alt={item.title}
+                      width={500}
+                      height={400}
+                      containerClassName="absolute inset-0"
+                      className="transition-transform duration-500 group-hover:scale-105"
+                    />
                     <span className="absolute left-3 top-3 rounded-full bg-amber-300 px-3 py-1 text-xs font-black text-black shadow">
                       Limited
                     </span>

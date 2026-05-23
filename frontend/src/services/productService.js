@@ -6,11 +6,19 @@ import { showcaseProducts } from '../constants/marketplace';
  * This ensures the application works with the Mock Backend.
  */
 const fallbackProducts = (filters = {}) => {
-  const category = filters.category && filters.category !== 'All' ? String(filters.category).toLowerCase() : '';
+  const category =
+    filters.category && filters.category !== 'All'
+      ? String(filters.category).toLowerCase()
+      : '';
   const search = filters.search ? String(filters.search).toLowerCase() : '';
+
   return showcaseProducts
     .filter((product) => !category || product.category.toLowerCase().includes(category))
-    .filter((product) => !search || `${product.title} ${product.brand} ${product.category}`.toLowerCase().includes(search))
+    .filter(
+      (product) =>
+        !search ||
+        `${product.title} ${product.brand} ${product.category}`.toLowerCase().includes(search)
+    )
     .slice(0, filters.limit || 24);
 };
 
@@ -28,19 +36,13 @@ export const getProducts = async (filters = {}) => {
         colors: filters.colors?.join(','),
         sizes: filters.sizes?.join(','),
         rating: filters.rating,
-      }
+      },
     });
 
     const apiCount = data.products?.length || 0;
-    // #region agent log
-    fetch('http://127.0.0.1:7681/ingest/027dfc36-804a-4ed9-a97a-acd8384fff87',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'509474'},body:JSON.stringify({sessionId:'509474',runId:'pre-fix',hypothesisId:'H1',location:'productService.js:getProducts',message:'API products response',data:{apiCount,total:data.total||0,filters:!!filters.search||!!filters.category},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
 
     if (!apiCount) {
       const products = fallbackProducts(filters);
-      // #region agent log
-      fetch('http://127.0.0.1:7681/ingest/027dfc36-804a-4ed9-a97a-acd8384fff87',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'509474'},body:JSON.stringify({sessionId:'509474',runId:'pre-fix',hypothesisId:'H3',location:'productService.js:getProducts',message:'Empty API — using showcase fallback',data:{fallbackCount:products.length},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       return {
         products,
         total: products.length,
@@ -72,7 +74,9 @@ export const getProductById = async (productId) => {
     const { data } = await api.get(`/products/${productId}`);
     return data;
   } catch (error) {
-    const fallback = showcaseProducts.find((product) => product.id === productId || product._id === productId);
+    const fallback = showcaseProducts.find(
+      (product) => product.id === productId || product._id === productId
+    );
     if (fallback) return fallback;
     throw error;
   }
@@ -98,7 +102,11 @@ export const deleteProduct = async (productId) => {
 };
 
 export const getRelatedProducts = async (product, count = 8) => {
-  const result = await getProducts({ category: product.category, limit: count + 1, sort: 'top_rated' });
+  const result = await getProducts({
+    category: product.category,
+    limit: count + 1,
+    sort: 'top_rated',
+  });
   return result.products.filter((item) => item.id !== product.id).slice(0, count);
 };
 

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { ArrowRight, BadgeCheck, Globe2, LockKeyhole, Mail, Radio, Send, ShieldCheck, Smartphone, Users } from 'lucide-react';
 import { footerLinks } from '../constants/marketplace';
 
@@ -83,11 +82,11 @@ const Footer = () => {
               className="mt-5 flex overflow-hidden rounded-full border border-black/5 dark:border-white/10 bg-black/[0.03] dark:bg-black/[0.35] p-1"
             >
               <input type="email" required placeholder="Email address" className="min-w-0 flex-1 bg-transparent px-4 text-sm text-gray-950 dark:text-white outline-none placeholder:text-gray-400 dark:placeholder:text-white/[0.35]" />
-              <motion.button whileTap={{ scale: 0.95 }} className="grid h-11 w-11 place-items-center rounded-full bg-amber-300 text-black" aria-label="Subscribe">
+              <button className="grid h-11 w-11 place-items-center rounded-full bg-amber-300 text-black transition-transform active:scale-95" aria-label="Subscribe">
                 {subscribed ? <BadgeCheck className="h-5 w-5" /> : <Send className="h-5 w-5" />}
-              </motion.button>
+              </button>
             </form>
-            {subscribed && <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-3 text-sm font-bold text-emerald-300">You are on the private list.</motion.p>}
+            {subscribed && <p className="mt-3 animate-[fadeSlideUp_180ms_ease_forwards] text-sm font-bold text-emerald-300">You are on the private list.</p>}
             <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold text-gray-500 dark:text-white/[0.52]">
               <span className="inline-flex items-center gap-1 rounded-full bg-black/[0.03] dark:bg-white/5 px-3 py-2"><ShieldCheck className="h-3.5 w-3.5 text-amber-600 dark:text-amber-200" /> Buyer protected</span>
               <span className="inline-flex items-center gap-1 rounded-full bg-black/[0.03] dark:bg-white/5 px-3 py-2"><LockKeyhole className="h-3.5 w-3.5 text-amber-600 dark:text-amber-200" /> SSL secured</span>

@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { Moon, SunMedium } from 'lucide-react';
 
 const DarkModeToggle = ({ darkMode, onToggle }) => {
@@ -13,16 +12,12 @@ const DarkModeToggle = ({ darkMode, onToggle }) => {
       aria-label="Toggle theme"
       title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      <motion.span
+      <span
         key={darkMode ? 'moon' : 'sun'}
-        initial={{ rotate: -40, scale: 0.7, opacity: 0 }}
-        animate={{ rotate: 0, scale: 1, opacity: 1 }}
-        exit={{ rotate: 40, scale: 0.7, opacity: 0 }}
-        transition={{ duration: 0.25 }}
-        className="grid place-items-center"
+        className="grid place-items-center transition-[opacity,transform] duration-200"
       >
         {darkMode ? <Moon className="h-4 w-4" /> : <SunMedium className="h-4 w-4" />}
-      </motion.span>
+      </span>
     </button>
   );
 };

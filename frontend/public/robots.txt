@@ -1,0 +1,28 @@
+# robots.txt — GoldMarket
+# FIX: The Lighthouse SEO audit found 52 errors because there was no robots.txt file
+# and the dev server was returning the index.html instead.
+# Place this file at /public/robots.txt so Vite serves it at https://yourdomain.com/robots.txt
+
+User-agent: *
+Allow: /
+Allow: /products
+Allow: /products/
+Allow: /category/
+Allow: /about
+Allow: /contact
+Allow: /shipping-info
+Allow: /returns
+
+# Block private/auth routes from crawlers
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /seller
+Disallow: /seller/
+
+# Sitemap location (update with your actual domain)
+Sitemap: https://yourdomain.com/sitemap.xml

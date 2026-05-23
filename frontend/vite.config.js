@@ -28,11 +28,6 @@ const compressionPlugin = () => ({
   },
 });
 
-/**
- * Manual chunk strategy — keeps vendor bundles focused so only
- * what a route needs is fetched. Each chunk is a separate HTTP request
- * that can be cached independently.
- */
 const manualChunks = (id) => {
   if (!id.includes('node_modules')) return undefined;
 
@@ -48,10 +43,8 @@ const manualChunks = (id) => {
     return 'vendor-firebase-core';
   if (id.includes('@tensorflow')) return 'vendor-tf';
 
-  // Swiper is lazy-loaded — keep it separate
   if (id.includes('swiper')) return 'vendor-swiper';
 
-  // Framer-motion — keep isolated so tree-shaking works per chunk
   if (
     id.includes('framer-motion') ||
     id.includes('motion-dom') ||
@@ -59,20 +52,15 @@ const manualChunks = (id) => {
   )
     return 'vendor-motion';
 
-  // Chart library — only seller dashboard needs it
   if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts';
-
-  // Router
+  if (id.includes('react-countup') || id.includes('countup')) return 'vendor-countup';
   if (id.includes('react-router')) return 'vendor-router';
-
-  // Core React runtime — tiny and shared everywhere
   if (id.includes('react-dom') || id.includes('scheduler')) return 'vendor-react-dom';
   if (id.includes('/react/')) return 'vendor-react';
 
-  // Icons — lucide tree-shakes well; keep in its own chunk so it can be cached
+  // FIX: lucide-react is 799 KiB — split into its own cacheable chunk
   if (id.includes('lucide-react')) return 'vendor-icons';
 
-  // State / form / misc utilities
   if (
     id.includes('zustand') ||
     id.includes('react-hook-form') ||
@@ -82,14 +70,12 @@ const manualChunks = (id) => {
   )
     return 'vendor-utils';
 
-  // Everything else (toasts, phone input, range, countup …)
   return 'vendor-misc';
 };
 
 export default defineConfig({
   plugins: [
     react({
-      // Babel config — remove prop-types & dev-only code in production
       babel: {
         plugins: [
           ['transform-remove-console', { exclude: ['error', 'warn'] }],
@@ -100,6 +86,7 @@ export default defineConfig({
   ],
 
   build: {
+    modulePreload: false,
     target: 'es2020',
     minify: 'terser',
     terserOptions: {
@@ -108,16 +95,18 @@ export default defineConfig({
         drop_debugger: true,
         passes: 2,
         pure_funcs: ['console.log', 'console.info', 'console.debug'],
+        // Additional aggressive compression
+        dead_code: true,
+        unused: true,
       },
       mangle: { safari10: true },
       format: { comments: false },
     },
     cssCodeSplit: true,
     sourcemap: false,
-    // Warn when any single chunk exceeds 400 kB (gzip ~130 kB)
     chunkSizeWarningLimit: 400,
-    // Inline small assets (< 4 kB) as base64 to cut HTTP round-trips
-    assetsInlineLimit: 4096,
+    // FIX: Inline more small assets to cut HTTP round-trips
+    assetsInlineLimit: 8192,
     rollupOptions: {
       output: {
         manualChunks,
@@ -125,7 +114,6 @@ export default defineConfig({
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
       },
-      // Warn on circular deps which bloat bundles
       onwarn(warning, warn) {
         if (warning.code === 'CIRCULAR_DEPENDENCY') return;
         warn(warning);
@@ -134,10 +122,25 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    // Exclude large async deps so Vite doesn't pre-bundle them.
-    // They are imported dynamically and will be split into their own chunks.
-    exclude: ['firebase', 'firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage', 'hls.js', '@tensorflow-models/mobilenet', '@tensorflow/tfjs'],
-    // Pre-bundle synchronous critical-path deps for fast dev starts
-    include: ['react', 'react-dom', 'react-router-dom', 'zustand', 'axios', 'clsx', 'tailwind-merge'],
+    exclude: [
+      'firebase', 'firebase/app', 'firebase/auth',
+      'firebase/firestore', 'firebase/storage',
+      'lucide-react',
+      'hls.js',
+      '@tensorflow-models/mobilenet', '@tensorflow/tfjs',
+    ],
+    include: [
+      'react', 'react-dom', 'react-router-dom',
+      'zustand', 'axios', 'clsx', 'tailwind-merge',
+    ],
+  },
+
+  // FIX: Serve with proper headers in dev to simulate production behaviour
+  server: {
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+    },
   },
 });
