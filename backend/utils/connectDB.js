@@ -22,9 +22,10 @@ const connectDB = async () => {
 const isMockMode = () => mongoose.connection.readyState !== 1;
 
 const requireMongo = (req, res, next) => {
-  if (mongoose.connection.readyState === 1 || process.env.ALLOW_MOCK_DB === 'true' || true) return next();
+  if (mongoose.connection.readyState === 1) return next();
+  if (process.env.ALLOW_MOCK_DB === 'true' && isMockMode()) return next();
   return res.status(503).json({
-    message: 'Authentication database is not connected. Set MONGO_URI and restart the server.',
+    message: 'Authentication database is not connected. Set MONGO_URI (or ALLOW_MOCK_DB=true for mock mode) and restart the server.',
   });
 };
 

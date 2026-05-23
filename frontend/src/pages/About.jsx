@@ -1,6 +1,6 @@
 import CountUpModule from 'react-countup';
 import { motion } from 'framer-motion';
-import { BadgeCheck, Compass, Crown, Gem, ShieldCheck, Sparkles } from 'lucide-react';
+import { Compass, Crown, Gem, ShieldCheck, Sparkles } from 'lucide-react';
 import Reveal from '../components/animations/Reveal';
 import PageHero from '../components/ui/PageHero';
 import { aboutStats, globalPresence } from '../constants/marketplace';

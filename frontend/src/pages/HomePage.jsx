@@ -1,6 +1,5 @@
 import { lazy, memo, Suspense, useEffect, useMemo, useState } from 'react';
 import CountUpModule from 'react-countup';
-import { motion } from 'framer-motion';
 import { BadgeCheck, Flame, Gauge, LockKeyhole, PackageCheck, Sparkles } from 'lucide-react';
 
 const CinematicMarketHero = lazy(() => import('../components/hero/CinematicMarketHero'));

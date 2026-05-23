@@ -5,6 +5,15 @@ import { showcaseProducts } from '../constants/marketplace';
  * Fetch products from the REST API instead of Firebase.
  * This ensures the application works with the Mock Backend.
  */
+const fallbackProducts = (filters = {}) => {
+  const category = filters.category && filters.category !== 'All' ? String(filters.category).toLowerCase() : '';
+  const search = filters.search ? String(filters.search).toLowerCase() : '';
+  return showcaseProducts
+    .filter((product) => !category || product.category.toLowerCase().includes(category))
+    .filter((product) => !search || `${product.title} ${product.brand} ${product.category}`.toLowerCase().includes(search))
+    .slice(0, filters.limit || 24);
+};
+
 export const getProducts = async (filters = {}) => {
   try {
     const { data } = await api.get('/products', {
@@ -15,7 +24,6 @@ export const getProducts = async (filters = {}) => {
         minPrice: filters.minPrice,
         maxPrice: filters.maxPrice,
         limit: filters.limit,
-        // Mocking other filters as query params if needed
         brands: filters.brands?.join(','),
         colors: filters.colors?.join(','),
         sizes: filters.sizes?.join(','),
@@ -23,20 +31,33 @@ export const getProducts = async (filters = {}) => {
       }
     });
 
+    const apiCount = data.products?.length || 0;
+    // #region agent log
+    fetch('http://127.0.0.1:7681/ingest/027dfc36-804a-4ed9-a97a-acd8384fff87',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'509474'},body:JSON.stringify({sessionId:'509474',runId:'pre-fix',hypothesisId:'H1',location:'productService.js:getProducts',message:'API products response',data:{apiCount,total:data.total||0,filters:!!filters.search||!!filters.category},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+
+    if (!apiCount) {
+      const products = fallbackProducts(filters);
+      // #region agent log
+      fetch('http://127.0.0.1:7681/ingest/027dfc36-804a-4ed9-a97a-acd8384fff87',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'509474'},body:JSON.stringify({sessionId:'509474',runId:'pre-fix',hypothesisId:'H3',location:'productService.js:getProducts',message:'Empty API — using showcase fallback',data:{fallbackCount:products.length},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      return {
+        products,
+        total: products.length,
+        lastDoc: null,
+        hasMore: false,
+      };
+    }
+
     return {
-      products: data.products || [],
-      total: data.total || 0,
-      lastDoc: null, // REST API uses offset/page, not Firebase cursor
-      hasMore: (data.products?.length || 0) === (filters.limit || 24),
+      products: data.products,
+      total: data.total || apiCount,
+      lastDoc: null,
+      hasMore: apiCount === (filters.limit || 24),
     };
   } catch (error) {
     console.warn('getProducts fallback:', error.message);
-    const category = filters.category && filters.category !== 'All' ? String(filters.category).toLowerCase() : '';
-    const search = filters.search ? String(filters.search).toLowerCase() : '';
-    const products = showcaseProducts
-      .filter((product) => !category || product.category.toLowerCase().includes(category))
-      .filter((product) => !search || `${product.title} ${product.brand} ${product.category}`.toLowerCase().includes(search))
-      .slice(0, filters.limit || 24);
+    const products = fallbackProducts(filters);
     return {
       products,
       total: products.length,

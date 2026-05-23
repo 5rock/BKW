@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer';
 import { brotliCompressSync, gzipSync } from 'node:zlib';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';

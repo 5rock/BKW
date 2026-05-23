@@ -1,8 +1,29 @@
+const fs = require('fs');
+const path = require('path');
 const Product = require('../models/Product');
 const { isMockMode } = require('../utils/connectDB');
 const { mockModel } = require('../utils/db');
 
 const MockProduct = mockModel('products');
+
+// #region agent log
+const debugLog = (message, data, hypothesisId) => {
+  try {
+    const payload = JSON.stringify({
+      sessionId: '509474',
+      runId: 'pre-fix',
+      hypothesisId,
+      location: 'productController.js',
+      message,
+      data,
+      timestamp: Date.now(),
+    });
+    fs.appendFileSync(path.join(__dirname, '../../../debug-509474.log'), `${payload}\n`);
+  } catch {
+    /* ignore logging failures */
+  }
+};
+// #endregion
 
 // GET /api/products
 const getProducts = async (req, res) => {
@@ -54,8 +75,12 @@ const getProducts = async (req, res) => {
     else if (sort === 'rating') sortOption.ratingsAverage = -1;
     else sortOption.createdAt = -1;
 
-    const products = await Product.find(query).sort(sortOption).limit(parseInt(limit));
-    res.json({ products, total: products.length });
+    const products = await Product.find(query).sort(sortOption).limit(parseInt(limit, 10));
+    const total = await Product.countDocuments(query);
+    // #region agent log
+    debugLog('getProducts mongo mode', { mockMode: false, total, returned: products.length, hasSearch: Boolean(search) }, 'H1');
+    // #endregion
+    res.json({ products, total });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

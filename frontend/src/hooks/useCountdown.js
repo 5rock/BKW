@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const getRemaining = (target) => {
   const total = Math.max(0, target - Date.now());
@@ -9,7 +9,7 @@ const getRemaining = (target) => {
 };
 
 export const useCountdown = (hoursFromNow = 12) => {
-  const target = useMemo(() => Date.now() + hoursFromNow * 3600000, [hoursFromNow]);
+  const [target] = useState(() => Date.now() + hoursFromNow * 3600000);
   const [time, setTime] = useState(() => getRemaining(target));
 
   useEffect(() => {

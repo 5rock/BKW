@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Share2, ShieldCheck, Truck, RotateCcw, Zap, ChevronRight, Star } from 'lucide-react';
+import { Heart, Share2, ShieldCheck, Truck, RotateCcw, Zap, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';

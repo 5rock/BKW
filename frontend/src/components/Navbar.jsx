@@ -146,7 +146,6 @@ const Navbar = () => {
   const dropdownSurface = darkMode
     ? 'border-white/10 bg-[#0a0a0a]/95 text-white shadow-black/55'
     : 'border-black/10 bg-[#f5efe7]/95 text-black shadow-black/15';
-  const mutedText = darkMode ? 'text-white/62' : 'text-gray-600';
   const softText = darkMode ? 'text-white/42' : 'text-gray-500';
   const iconAccent = darkMode ? 'text-amber-200' : 'text-amber-700';
   const actionButton = `border p-2.5 transition-all duration-300 ${pillSurface} ${
