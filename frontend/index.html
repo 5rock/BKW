@@ -1,65 +1,79 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Viewport: prevents layout shift on iOS when address bar appears -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- SEO -->
     <meta
       name="description"
-      content="GoldMarket — a trusted marketplace for gold, jewelry, and luxury investment assets. Shop authenticated jewelry, watches, and premium goods with global delivery."
+      content="GoldMarket — a trusted marketplace for gold, jewelry, watches, sneakers, and luxury goods. Shop authenticated items with global delivery."
     />
-    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="robots" content="index, follow" />
+    <meta name="color-scheme" content="dark light" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="GoldMarket - Luxury & Premium Goods" />
+    <meta property="og:description" content="Verified luxury marketplace for fashion, watches, electronics, and rare lifestyle drops." />
+    <meta property="og:type" content="website" />
+
+    <!-- PWA / Mobile -->
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f4ece4" media="(prefers-color-scheme: light)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
     <title>GoldMarket - Luxury Gold &amp; Premium Goods</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    <!-- FIX: Referrer policy — don't leak URL to third parties -->
-    <meta name="referrer" content="strict-origin-when-cross-origin" />
-
-    <!-- ─── Critical preconnects (max 4 — more hurts performance) ──────── -->
+    <!-- ── Preconnect to critical external origins (must happen before any fetch) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://stream.mux.com" />
+    <!-- Unsplash CDN — dns-prefetch is cheaper than preconnect for image CDNs -->
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
 
-    <!--
-      FIX: Google Fonts — load async with font-display=swap to fix render-blocking.
-      The trick: load CSS via <link rel=preload> then flip to stylesheet on load.
-      This removes the 920ms render-blocking penalty from Lighthouse.
-    -->
+    <!-- ── Google Fonts — display=swap prevents render blocking -->
     <link
-      rel="preload"
-      as="style"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap"
-      onload="this.rel='stylesheet'"
+      rel="stylesheet"
     />
-    <noscript>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap"
-      />
-    </noscript>
 
-    <!-- FIX: Hero image preload with correct type — fixes LCP element render delay -->
-    <link rel="preload" as="image" href="/hero.png" fetchpriority="high" type="image/png" />
+    <!-- ── Critical asset preloads (highest priority, fetch before JS parses) -->
+    <!-- Hero poster: LCP candidate — preloaded with fetchpriority=high -->
+    <link rel="preload" as="image" href="/hero.png" fetchpriority="high" />
 
-    <!--
-      FIX: Inline theme script — runs before first paint to prevent FOUC.
-      Keep this tiny — no external dependencies.
-    -->
+    <!-- ── Inline theme script — runs before first paint, eliminates FOUC -->
+    <!-- Must be synchronous (no defer/async) to run before browser paints -->
     <script>
       (function () {
         try {
           var saved = localStorage.getItem('goldmarket_theme');
-          var prefersDark =
-            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           var theme = saved || (prefersDark ? 'dark' : 'light');
-          document.documentElement.classList.add(theme);
-          document.documentElement.style.colorScheme = theme;
+          var html = document.documentElement;
+          html.classList.add(theme);
+          html.style.colorScheme = theme;
         } catch (_) {
-          document.documentElement.classList.add('light');
-          document.documentElement.style.colorScheme = 'light';
+          document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = 'dark';
         }
       })();
     </script>
+
+    <!-- ── Critical CSS inlined to prevent first-paint blocking -->
+    <!-- Only structural rules needed before JS hydrates -->
+    <style>
+      /* Prevent FOUC background flash before theme class applies */
+      html { background: #0a0a0a; }
+      html.light { background: #f4ece4; }
+      /* Stable body layout before app hydrates */
+      body { margin: 0; min-height: 100dvh; }
+      #root { min-height: 100dvh; }
+      /* Hero placeholder height to prevent CLS while hero lazy loads */
+      .hero-placeholder { min-height: 100svh; background: #070b0a; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

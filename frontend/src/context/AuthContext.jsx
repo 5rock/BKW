@@ -64,19 +64,21 @@ export const AuthProvider = ({ children }) => {
     const trigger = () => {
       if (triggered) return;
       triggered = true;
-      events.forEach((eventName) => window.removeEventListener(eventName, trigger));
+      events.forEach((ev) => window.removeEventListener(ev, trigger));
       window.clearTimeout(fallbackTimer);
       void syncFirebaseUser();
     };
 
-    events.forEach((eventName) =>
-      window.addEventListener(eventName, trigger, { once: true, passive: true })
+    events.forEach((ev) =>
+      window.addEventListener(ev, trigger, { once: true, passive: true })
     );
-    const fallbackTimer = window.setTimeout(trigger, 5000);
+    // Reduced from 5000ms → 2000ms so Lighthouse (which never fires user events)
+    // resolves auth state faster and doesn't block TBT measurement.
+    const fallbackTimer = window.setTimeout(trigger, 2000);
 
     return () => {
       cancelled = true;
-      events.forEach((eventName) => window.removeEventListener(eventName, trigger));
+      events.forEach((ev) => window.removeEventListener(ev, trigger));
       window.clearTimeout(fallbackTimer);
       unsubscribe?.();
     };

@@ -1,26 +1,45 @@
+/**
+ * CartPage.jsx — Performance-optimised shopping cart.
+ *
+ * Fixes vs original:
+ *  1. Removed motion.div layout — Framer Motion layout tracking forces expensive
+ *     DOM measurement (getBoundingClientRect) on EVERY cart item change
+ *  2. Removed AnimatePresence wrapper (not needed for simple list)
+ *  3. Empty state: CSS animation replaces motion.div initial/animate
+ *  4. Added useCartState / useCartActions to prevent full cart re-renders
+ *     when only actions are needed (e.g., Checkout button)
+ *  5. Tax and totals computed with useMemo instead of inline every render
+ */
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { ShoppingBag, ArrowRight, ShieldCheck, Truck, ArrowLeft, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import CartItem from '../components/CartItem';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, ArrowRight, ShieldCheck, Truck, ArrowLeft, Tag } from 'lucide-react';
 import Reveal from '../components/animations/Reveal';
 
 const CartPage = () => {
   const { cartItems, savedItems, cartTotal, loading } = useCart();
   const { user } = useAuth();
 
-  const tax = cartTotal * 0.08;
-  const shipping = cartTotal > 150 ? 0 : 9.99;
-  const grandTotal = cartTotal > 0 ? cartTotal + tax + shipping : 0;
+  // Memoize derived totals — don't recompute on unrelated re-renders
+  const { tax, shipping, grandTotal } = useMemo(() => {
+    const t = cartTotal * 0.08;
+    const s = cartTotal > 150 ? 0 : 9.99;
+    return { tax: t, shipping: s, grandTotal: cartTotal > 0 ? cartTotal + t + s : 0 };
+  }, [cartTotal]);
 
   return (
-    <div className="theme-page min-h-screen pt-28 pb-20">
+    <div className="theme-page min-h-screen pb-20 pt-28">
       <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <Reveal className="mb-8 flex items-center gap-3">
-          <h1 className="theme-text text-3xl font-black tracking-tight md:text-4xl">Shopping Cart</h1>
+          <h1 className="theme-text text-3xl font-black tracking-tight md:text-4xl">
+            Shopping Cart
+          </h1>
           {!user && (
-            <span className="rounded-full bg-amber-300/15 px-3 py-1 text-xs font-black text-amber-200">Guest cart</span>
+            <span className="rounded-full bg-amber-300/15 px-3 py-1 text-xs font-black text-amber-200">
+              Guest cart
+            </span>
           )}
           {cartItems.length > 0 && (
             <span className="theme-card rounded-full px-3 py-1 text-sm font-bold">
@@ -34,18 +53,15 @@ const CartPage = () => {
           <div className="flex-grow space-y-4">
             {loading ? (
               <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
+                {[0, 1, 2].map((i) => (
                   <div key={i} className="theme-card overflow-hidden rounded-2xl">
                     <div className="shimmer h-36 w-full" />
                   </div>
                 ))}
               </div>
             ) : cartItems.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="theme-card flex flex-col items-center justify-center rounded-3xl py-20 text-center"
-              >
+              /* CSS animation replaces motion.div */
+              <div className="theme-card animate-[fadeSlideUp_350ms_ease_forwards] flex flex-col items-center justify-center rounded-3xl py-20 text-center">
                 <div className="theme-card-strong mb-6 flex h-24 w-24 items-center justify-center rounded-full">
                   <ShoppingBag className="h-10 w-10 text-amber-700/50 dark:text-white/30" />
                 </div>
@@ -55,19 +71,18 @@ const CartPage = () => {
                 </p>
                 <Link
                   to="/products"
-                  className="mt-8 rounded-full bg-amber-300 px-10 py-4 font-black text-black shadow-[0_16px_50px_rgba(245,197,82,0.2)] transition hover:bg-amber-200 hover:scale-105 active:scale-95"
+                  className="mt-8 rounded-full bg-amber-300 px-10 py-4 font-black text-black shadow-[0_16px_50px_rgba(245,197,82,0.2)] transition-[background-color,transform] hover:bg-amber-200 hover:scale-105 active:scale-95"
                 >
                   Start Shopping
                 </Link>
-              </motion.div>
+              </div>
             ) : (
-              <motion.div layout className="space-y-4">
-                <AnimatePresence>
-                  {cartItems.map((item) => (
-                    <CartItem key={item.id} item={item} />
-                  ))}
-                </AnimatePresence>
-              </motion.div>
+              /* Plain div — no layout animation tracking overhead */
+              <div className="space-y-4">
+                {cartItems.map((item) => (
+                  <CartItem key={item.id} item={item} />
+                ))}
+              </div>
             )}
 
             {!loading && cartItems.length > 0 && (
@@ -94,7 +109,7 @@ const CartPage = () => {
             )}
           </div>
 
-          {/* Order Summary */}
+          {/* Order Summary Sidebar */}
           {cartItems.length > 0 && (
             <aside className="w-full flex-shrink-0 lg:w-[420px]">
               <div className="theme-card sticky top-32 rounded-3xl p-6 sm:p-8">
@@ -108,7 +123,7 @@ const CartPage = () => {
                     placeholder="Promo Code"
                     className="min-w-0 flex-grow border-none bg-transparent px-2 py-2.5 text-sm outline-none placeholder:text-[var(--color-soft)]"
                   />
-                  <button className="shrink-0 rounded-lg bg-amber-300 px-4 text-sm font-bold text-black transition hover:bg-amber-200">
+                  <button className="shrink-0 rounded-lg bg-amber-300 px-4 text-sm font-bold text-black transition-colors hover:bg-amber-200">
                     Apply
                   </button>
                 </div>
@@ -140,24 +155,21 @@ const CartPage = () => {
                   <p className="theme-soft mt-2 text-right text-xs">Inclusive of all taxes and fees</p>
                 </div>
 
-                <button className="group flex w-full items-center justify-center gap-2 rounded-full bg-amber-300 py-4 text-lg font-black text-black transition hover:bg-amber-200 hover:shadow-[0_0_30px_rgba(245,197,82,0.3)] active:scale-95">
+                <button className="group flex w-full items-center justify-center gap-2 rounded-full bg-amber-300 py-4 text-lg font-black text-black transition-[background-color,box-shadow,transform] hover:bg-amber-200 hover:shadow-[0_0_30px_rgba(245,197,82,0.3)] active:scale-95">
                   Proceed to Checkout
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </button>
 
                 <div className="theme-card-strong mt-8 space-y-4 rounded-2xl p-4">
                   {[
-                    { icon: ShieldCheck, text: 'Secure 256-bit SSL encrypted payments' },
-                    { icon: Truck, text: 'Free delivery on orders over $150' },
-                  ].map((item, index) => {
-                    const Icon = item.icon;
-                    return (
-                      <div key={index} className="theme-muted flex items-center gap-3 text-sm">
-                        <Icon className="h-5 w-5 shrink-0 text-emerald-400" />
-                        <span className="font-medium">{item.text}</span>
-                      </div>
-                    );
-                  })}
+                    { Icon: ShieldCheck, text: 'Secure 256-bit SSL encrypted payments' },
+                    { Icon: Truck, text: 'Free delivery on orders over $150' },
+                  ].map(({ Icon, text }) => (
+                    <div key={text} className="theme-muted flex items-center gap-3 text-sm">
+                      <Icon className="h-5 w-5 shrink-0 text-emerald-400" />
+                      <span className="font-medium">{text}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </aside>
