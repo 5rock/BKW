@@ -10,34 +10,37 @@
  *  5. No localStorage reads on every request — token cached in module scope
  */
 import axios from 'axios';
-import { refreshAccessToken } from './authService';
+import { refreshAccessToken } from '@/services/authService';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-// ── Module-level token cache (avoids localStorage read on every request)
-let _cachedToken = null;
-
-export const setTokenCache = (token) => { _cachedToken = token; };
-export const clearTokenCache = () => { _cachedToken = null; };
-
-const readToken = () => {
-  if (_cachedToken) return _cachedToken;
-  const t = localStorage.getItem('gm_access_token') || sessionStorage.getItem('gm_access_token');
-  if (t) _cachedToken = t;
-  return t;
-};
 
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 12000, // 12s — prevent forever-hanging requests on slow connections
+  timeout: 12000,
+  withCredentials: true,
 });
 
-// ── Attach access token
+// ── CSRF Token Management
+let csrfTokenFetched = false;
+
+export const fetchCsrfToken = async () => {
+  if (csrfTokenFetched) return;
+  try {
+    const { data } = await axios.get(`${BASE_URL}/csrf-token`, { withCredentials: true });
+    api.defaults.headers.common['x-csrf-token'] = data.csrfToken;
+    csrfTokenFetched = true;
+  } catch (err) {
+    console.error('Failed to fetch CSRF token:', err);
+  }
+};
+
 api.interceptors.request.use(
-  (config) => {
-    const token = readToken();
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+  async (config) => {
+    // Only fetch CSRF for mutating requests
+    if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+      await fetchCsrfToken();
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -47,8 +50,8 @@ api.interceptors.request.use(
 let isRefreshing = false;
 let failedQueue = [];
 
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(token)));
+const processQueue = (error) => {
+  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve()));
   failedQueue = [];
 };
 
@@ -67,44 +70,21 @@ api.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            original.headers.Authorization = `Bearer ${token}`;
-            return api(original);
-          })
+          .then(() => api(original))
           .catch((err) => Promise.reject(err));
       }
 
       original._retry = true;
       isRefreshing = true;
 
-      const storedRefresh =
-        localStorage.getItem('gm_refresh_token') || sessionStorage.getItem('gm_refresh_token');
-      if (!storedRefresh) {
-        clearTokenCache();
-        ['gm_access_token', 'gm_refresh_token'].forEach((k) => {
-          localStorage.removeItem(k);
-          sessionStorage.removeItem(k);
-        });
-        window.location.href = '/login';
-        return Promise.reject(error);
-      }
-
       try {
-        const { data } = await refreshAccessToken(storedRefresh);
-        const storage = localStorage.getItem('gm_refresh_token') ? localStorage : sessionStorage;
-        storage.setItem('gm_access_token', data.accessToken);
-        setTokenCache(data.accessToken);
-        api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
-        processQueue(null, data.accessToken);
-        original.headers.Authorization = `Bearer ${data.accessToken}`;
+        await refreshAccessToken();
+        processQueue(null);
         return api(original);
       } catch (refreshError) {
-        clearTokenCache();
-        processQueue(refreshError, null);
-        ['gm_access_token', 'gm_refresh_token'].forEach((k) => {
-          localStorage.removeItem(k);
-          sessionStorage.removeItem(k);
-        });
+        processQueue(refreshError);
+        localStorage.removeItem('gm_user');
+        sessionStorage.removeItem('gm_user');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {
@@ -174,5 +154,13 @@ export const removeFromCart = (itemId)       => api.delete(`/cart/${itemId}`);
 
 // ── User Profile
 export const fetchMe = () => api.get('/users/me');
+
+// ── Orders
+export const createOrder  = (data) => api.post('/orders', data);
+export const fetchMyOrders = () => api.get('/orders/myorders');
+export const fetchOrderById = (id) => api.get(`/orders/${id}`);
+
+// ── Payments
+export const createPaymentIntent = (data) => api.post('/payments/create-payment-intent', data);
 
 export default api;

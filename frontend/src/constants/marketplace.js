@@ -1,25 +1,23 @@
-import {
-  BadgeCheck,
-  Banknote,
-  Clock3,
-  Gem,
-  Globe2,
-  Headphones,
-  HeartHandshake,
-  Home,
-  Laptop,
-  MapPin,
-  PackageCheck,
-  RotateCcw,
-  ShieldCheck,
-  Shirt,
-  ShoppingBag,
-  Sparkles,
-  Star,
-  Truck,
-  Watch,
-  Dumbbell,
-} from 'lucide-react';
+import BadgeCheck from 'lucide-react/dist/esm/icons/badge-check';
+import Banknote from 'lucide-react/dist/esm/icons/banknote';
+import Clock3 from 'lucide-react/dist/esm/icons/clock-3';
+import Gem from 'lucide-react/dist/esm/icons/gem';
+import Globe2 from 'lucide-react/dist/esm/icons/globe-2';
+import Headphones from 'lucide-react/dist/esm/icons/headphones';
+import HeartHandshake from 'lucide-react/dist/esm/icons/heart-handshake';
+import Home from 'lucide-react/dist/esm/icons/home';
+import Laptop from 'lucide-react/dist/esm/icons/laptop';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import PackageCheck from 'lucide-react/dist/esm/icons/package-check';
+import RotateCcw from 'lucide-react/dist/esm/icons/rotate-ccw';
+import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
+import Shirt from 'lucide-react/dist/esm/icons/shirt';
+import ShoppingBag from 'lucide-react/dist/esm/icons/shopping-bag';
+import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
+import Star from 'lucide-react/dist/esm/icons/star';
+import Truck from 'lucide-react/dist/esm/icons/truck';
+import Watch from 'lucide-react/dist/esm/icons/watch';
+import Dumbbell from 'lucide-react/dist/esm/icons/dumbbell';
 
 export const brand = {
   name: 'GoldMarket',

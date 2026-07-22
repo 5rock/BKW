@@ -1,5 +1,5 @@
-import { getFirestoreDb } from '../firebase/config';
-import { getProductById } from './productService';
+import { getFirestoreDb } from '@/firebase/config';
+import { getProductById } from '@/services/productService';
 
 const GUEST_CART_KEY = 'marketx_guest_cart';
 const WISHLIST_KEY = 'marketx_guest_wishlist';

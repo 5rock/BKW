@@ -1,0 +1,27 @@
+{
+  "name": "bkw",
+  "version": "1.0.0",
+  "description": "GoldMarket is a full-stack, production-ready e-commerce platform built with the MERN stack (MongoDB, Express, React, Node.js). It features a robust multi-role architecture (Customers, Sellers, Admins) and integrates Google Gemini AI to provide a highly interactive shopping assistant.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TriAxix-Tech/BKW.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TriAxix-Tech/BKW/issues"
+  },
+  "homepage": "https://github.com/TriAxix-Tech/BKW#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.1",
+    "@commitlint/config-conventional": "^21.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.9.5"
+  }
+}

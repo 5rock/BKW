@@ -1,5 +1,5 @@
-import api from './api';
-import { getFirebaseAuth, getOAuthProviders } from '../firebase/config';
+import api from '@/services/api';
+import { getFirebaseAuth, getOAuthProviders } from '@/firebase/config';
 
 export const persistSession = ({ accessToken, refreshToken, user }, remember = true) => {
   const storage = remember ? localStorage : sessionStorage;

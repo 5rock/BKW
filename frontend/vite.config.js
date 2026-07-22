@@ -1,4 +1,5 @@
 import { brotliCompressSync, gzipSync } from 'node:zlib';
+import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -52,6 +53,7 @@ const manualChunks = (id) => {
 
   // ── Async-only heavy vendors (dynamic imports — never in critical path)
   if (id.includes('hls.js')) return 'vendor-hls';
+  if (id.includes('@stripe')) return 'vendor-stripe';
 
   // Firebase split by module — firestore is heaviest (301 kB)
   if (id.includes('firebase/firestore') || id.includes('@firebase/firestore'))
@@ -104,6 +106,11 @@ export default defineConfig({
     }),
     compressionPlugin(),
   ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  },
 
   build: {
     target: 'es2020',

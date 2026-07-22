@@ -8,7 +8,7 @@
  *   /users/{uid}  →  { name, email, role, avatar, emailVerified, ... }
  */
 
-import { getFirestoreDb } from './config';
+import { getFirestoreDb } from '@/firebase/config';
 
 const getFirestoreApi = () => import('firebase/firestore');
 

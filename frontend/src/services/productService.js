@@ -9,9 +9,9 @@
  *  3. getProducts: builds params object without undefined keys to avoid
  *     sending empty query params (e.g., ?search=undefined)
  */
-import { getCached, invalidateCache } from './api';
-import api from './api';
-import { showcaseProducts } from '../constants/marketplace';
+import { getCached, invalidateCache } from '@/services/api';
+import api from '@/services/api';
+import { showcaseProducts } from '@/constants/marketplace';
 
 // ── Fallback data when API is unavailable (dev mode / no backend)
 const fallbackProducts = (filters = {}) => {

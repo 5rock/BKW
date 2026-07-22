@@ -4,9 +4,9 @@
  *  2. Named export support (React.lazy only supports default exports natively)
  *
  * Usage:
- *   const { MyComponent } = lazyImport(() => import('./MyComponent'), 'MyComponent');
+ *   const { MyComponent } = lazyImport(() => import('@/utils/MyComponent'), 'MyComponent');
  *   // or for default exports:
- *   const MyPage = lazyImport(() => import('./MyPage'));
+ *   const MyPage = lazyImport(() => import('@/utils/MyPage'));
  */
 
 import { lazy } from 'react';
@@ -39,7 +39,7 @@ const retryImport = (importFn, retries = MAX_RETRIES) =>
  * @returns {React.LazyExoticComponent}
  *
  * @example
- * const { ProductCard } = lazyImport(() => import('./ProductCard'), 'ProductCard');
+ * const { ProductCard } = lazyImport(() => import('@/utils/ProductCard'), 'ProductCard');
  */
 export const lazyImport = (importFn, exportName = 'default') =>
   lazy(() =>

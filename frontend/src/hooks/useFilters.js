@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { DEFAULT_FILTERS } from '../store/filterStore';
-import { money } from '../utils/productUtils';
+import { DEFAULT_FILTERS } from '@/store/filterStore';
+import { money } from '@/utils/productUtils';
 
 const labelMap = {
   category: 'Category',

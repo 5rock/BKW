@@ -75,3 +75,31 @@ export const ProductDetailsSkeleton = () => (
     </div>
   </div>
 );
+
+export const CartSkeleton = () => (
+  <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
+    <div className="space-y-4">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="theme-card flex gap-4 overflow-hidden rounded-3xl p-4">
+          <div className="theme-card h-24 w-24 shrink-0 overflow-hidden rounded-2xl sm:h-32 sm:w-32">
+            <div className="shimmer h-full w-full" />
+          </div>
+          <div className="flex flex-1 flex-col justify-center space-y-3">
+            <div className="theme-card h-5 w-3/4 overflow-hidden rounded">
+              <div className="shimmer h-full w-full" />
+            </div>
+            <div className="theme-card h-4 w-1/3 overflow-hidden rounded">
+              <div className="shimmer h-full w-full" />
+            </div>
+            <div className="theme-card h-6 w-24 overflow-hidden rounded">
+              <div className="shimmer h-full w-full" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+    <div className="theme-card h-[400px] w-full overflow-hidden rounded-[2.5rem]">
+      <div className="shimmer h-full w-full" />
+    </div>
+  </div>
+);
