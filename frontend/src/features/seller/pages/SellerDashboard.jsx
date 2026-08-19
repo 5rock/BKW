@@ -123,7 +123,7 @@ const SellerDashboard = () => {
                           <Link to={`/products/${product.id}`} className="rounded-full bg-bg-primary border border-surface-border p-2 text-text-secondary hover:text-color-gold transition-colors">
                             <ExternalLink size={16} />
                           </Link>
-                          <button onClick={() => remove(product.id)} className="rounded-full bg-bg-primary border border-surface-border p-2 text-text-secondary hover:text-red-400 transition-colors">
+                          <button type="button" onClick={() => remove(product.id)} className="rounded-full bg-bg-primary border border-surface-border p-2 text-text-secondary hover:text-red-400 transition-colors">
                             <Trash2 size={16} />
                           </button>
                         </div>

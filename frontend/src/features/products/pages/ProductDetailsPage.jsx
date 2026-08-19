@@ -172,12 +172,14 @@ const ProductDetailsPage = () => {
               {has3D && (
                 <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 flex gap-2 p-1.5 rounded-full bg-bg-primary/80 backdrop-blur-md border border-surface-border shadow-lg">
                   <button 
+                    type="button"
                     onClick={() => setViewMode('3d')}
                     className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${viewMode === '3d' ? 'bg-text-primary text-bg-primary shadow-md' : 'text-text-secondary hover:text-text-primary'}`}
                   >
                     <Box size={14} /> 3D View
                   </button>
                   <button 
+                    type="button"
                     onClick={() => setViewMode('image')}
                     className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${viewMode === 'image' ? 'bg-text-primary text-bg-primary shadow-md' : 'text-text-secondary hover:text-text-primary'}`}
                   >
@@ -214,7 +216,8 @@ const ProductDetailsPage = () => {
               <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
                 {images.map((img, idx) => (
                   <button
-                    key={idx}
+                    type="button"
+                    key={img || idx}
                     onClick={() => setSelectedImage(idx)}
                     className={`relative w-24 h-24 rounded-2xl overflow-hidden border-2 transition-all duration-300 ${selectedImage === idx ? 'border-color-gold shadow-[0_0_15px_rgba(201,162,39,0.3)]' : 'border-surface-border opacity-60 hover:opacity-100'}`}
                   >
@@ -273,6 +276,7 @@ const ProductDetailsPage = () => {
                 <div className="flex flex-wrap gap-3">
                   {product.sizes.map((size) => (
                     <button
+                      type="button"
                       key={size}
                       onClick={() => setSelectedSize(size)}
                       className={`px-6 py-3 rounded-full border text-xs font-bold tracking-widest uppercase transition-all duration-300 ${selectedSize === size ? 'border-text-primary bg-text-primary text-bg-primary' : 'border-surface-border text-text-secondary hover:border-text-primary hover:text-text-primary'}`}
@@ -289,12 +293,13 @@ const ProductDetailsPage = () => {
               
               <div className="flex gap-4">
                 <div className="flex items-center justify-between border border-surface-border rounded-full px-4 py-2 w-32">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="text-text-secondary hover:text-color-gold p-2 text-lg transition-colors">−</button>
+                  <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="text-text-secondary hover:text-color-gold p-2 text-lg transition-colors">−</button>
                   <span className="text-text-primary text-sm font-bold">{quantity}</span>
-                  <button onClick={() => setQuantity(Math.min(product.stock || 99, quantity + 1))} className="text-text-secondary hover:text-color-gold p-2 text-lg transition-colors">+</button>
+                  <button type="button" onClick={() => setQuantity(Math.min(product.stock || 99, quantity + 1))} className="text-text-secondary hover:text-color-gold p-2 text-lg transition-colors">+</button>
                 </div>
                 
                 <button
+                  type="button"
                   disabled={product.stock <= 0 || adding}
                   onClick={() => handleAdd(false)}
                   className="luxury-button flex-1"
@@ -304,6 +309,7 @@ const ProductDetailsPage = () => {
               </div>
 
               <button
+                type="button"
                 disabled={product.stock <= 0}
                 onClick={() => handleAdd(true)}
                 className="luxury-button-outline w-full flex justify-center items-center gap-2"
@@ -317,11 +323,11 @@ const ProductDetailsPage = () => {
                 </span>
                 
                 <div className="flex gap-4">
-                  <button onClick={() => toggleWishlist(product.id)} className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors">
+                  <button type="button" onClick={() => toggleWishlist(product.id)} className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors">
                     <Heart size={14} className={isWishlisted(product.id) ? 'fill-color-gold text-color-gold' : ''} />
                     Save
                   </button>
-                  <button onClick={share} className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors">
+                  <button type="button" onClick={share} className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors">
                     <Share2 size={14} />
                     Share
                   </button>

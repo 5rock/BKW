@@ -133,7 +133,7 @@ const ProductUploadPage = () => {
               Curate your latest creation. Ensure high-fidelity imagery and provide a 3D model to offer clients the ultimate showroom experience.
             </p>
           </div>
-          <button onClick={() => navigate('/seller')} className="text-xs font-bold uppercase tracking-widest text-text-secondary hover:text-color-gold transition-colors">
+          <button type="button" onClick={() => navigate('/seller')} className="text-xs font-bold uppercase tracking-widest text-text-secondary hover:text-color-gold transition-colors">
             Discard & Return
           </button>
         </div>
@@ -292,7 +292,7 @@ const ProductUploadPage = () => {
               </div>
             )}
 
-            <button disabled={submitting} className="luxury-button w-full justify-center disabled:opacity-50">
+            <button type="submit" disabled={submitting} className="luxury-button w-full justify-center disabled:opacity-50">
               {submitting ? 'Finalizing...' : 'Offer Piece to Market'}
             </button>
           </div>
