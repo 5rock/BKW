@@ -1,6 +1,6 @@
 import { memo, useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bookmark, Minus, Plus, Trash2, ShieldCheck } from 'lucide-react';
+import { Bookmark, Minus, Plus, Trash2 } from 'lucide-react';
 import useCartStore from '@/store/cartStore';
 import { optimizeUnsplash } from '@/utils/imageUtils';
 

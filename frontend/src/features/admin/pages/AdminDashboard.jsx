@@ -43,13 +43,15 @@ const AdminDashboard = () => {
            <p className="mt-4 text-sm text-text-secondary">Overview of GoldMarket operations and financial metrics.</p>
         </div>
 
-        {loading ? (
+        {loading && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-32 rounded-3xl bg-surface-primary border border-surface-border animate-pulse" />
             ))}
           </div>
-        ) : error ? (
+        )}
+
+        {!loading && error && (
           <div className="rounded-3xl border border-red-500/20 bg-red-950/20 p-8 flex items-center gap-4 text-red-400">
              <ShieldAlert size={24} />
              <div>
@@ -57,7 +59,9 @@ const AdminDashboard = () => {
                 <p className="text-sm">{error}</p>
              </div>
           </div>
-        ) : (
+        )}
+
+        {!loading && !error && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="bg-surface-primary border border-surface-border rounded-3xl p-8 relative overflow-hidden group hover:border-color-gold/50 transition-colors">
               <div className="relative z-10">

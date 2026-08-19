@@ -99,6 +99,7 @@ const Product3DViewer = ({ modelUrl, fallbackImage, className }) => {
               <AlertCircle className="w-10 h-10 mx-auto mb-2 opacity-50" />
               <p>Failed to load 3D model.</p>
               <button 
+                type="button"
                 onClick={() => setError(false)}
                 className="mt-4 text-[10px] uppercase font-bold tracking-widest hover:text-color-gold transition-colors"
               >
@@ -148,6 +149,7 @@ const Product3DViewer = ({ modelUrl, fallbackImage, className }) => {
       </ErrorBoundary>
 
       <button
+        type="button"
         onClick={toggleFullscreen}
         className="absolute bottom-6 right-6 p-4 bg-surface-primary/80 backdrop-blur-md border border-surface-border text-text-primary hover:text-color-gold rounded-full shadow-2xl transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10 hover:scale-110"
         aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}

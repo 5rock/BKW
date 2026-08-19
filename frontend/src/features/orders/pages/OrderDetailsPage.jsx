@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { fetchOrderById } from '@/services/api';
-import { Package, Truck, CheckCircle2, Clock, Check, ArrowLeft, Receipt, ShieldCheck } from 'lucide-react';
+import { Package, CheckCircle2, Check, ArrowLeft, Receipt, ShieldCheck } from 'lucide-react';
 import { money } from '@/utils/productUtils';
 import { Helmet } from 'react-helmet-async';
 
@@ -151,8 +151,8 @@ const OrderDetailsPage = () => {
             <section>
               <h2 className="text-sm font-bold uppercase tracking-widest text-text-primary mb-6 border-b border-surface-border pb-4">Acquired Pieces</h2>
               <div className="space-y-6">
-                {order.orderItems.map((item, i) => (
-                  <div key={i} className="flex gap-6 items-center p-4 bg-surface-primary border border-surface-border rounded-2xl group">
+                {order.orderItems.map((item) => (
+                  <div key={item.product || item._id} className="flex gap-6 items-center p-4 bg-surface-primary border border-surface-border rounded-2xl group">
                     <div className="h-24 w-24 bg-bg-primary rounded-xl overflow-hidden shrink-0">
                       {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />}
                     </div>

@@ -110,7 +110,7 @@ const CartPage = () => {
                         placeholder="Complimentary Code"
                         className="flex-grow bg-transparent px-4 py-3 text-sm text-text-primary outline-none placeholder:text-text-muted"
                       />
-                      <button className="bg-text-primary text-bg-primary px-6 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-color-gold transition-colors">
+                      <button type="button" className="bg-text-primary text-bg-primary px-6 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-color-gold transition-colors">
                         Apply
                       </button>
                     </div>

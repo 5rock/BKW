@@ -32,75 +32,104 @@ const pickSafeFields = (source) => {
   return safe;
 };
 
+const buildMongoQuery = (queryObj) => {
+  const { search, category, minPrice, maxPrice } = queryObj;
+  const query = {};
+  
+  if (typeof search === 'string' && search) {
+    query.$text = { $search: String(search) };
+  }
+  
+  if (typeof category === 'string' && category && category !== 'All') {
+    query.category = String(category);
+  }
+  
+  if (minPrice != null || maxPrice != null) {
+    query.price = {};
+    if (minPrice != null && !isNaN(Number.parseFloat(minPrice))) {
+      query.price.$gte = Number.parseFloat(minPrice);
+    }
+    if (maxPrice != null && !isNaN(Number.parseFloat(maxPrice))) {
+      query.price.$lte = Number.parseFloat(maxPrice);
+    }
+  }
+  
+  return query;
+};
+
+const buildMongoSort = (sort) => {
+  const sortOption = {};
+  if (sort === 'price_asc') sortOption.price = 1;
+  else if (sort === 'price_desc') sortOption.price = -1;
+  else if (sort === 'rating') sortOption.ratingsAverage = -1;
+  else sortOption.createdAt = -1;
+  return sortOption;
+};
+
+const handleMockProducts = (reqQuery, parsedLimit, skip) => {
+  const { search, category, sort, minPrice, maxPrice } = reqQuery;
+  const db = require('../utils/db').readDB();
+  let products = [...db.products];
+
+  if (typeof search === 'string' && search) {
+    const q = search.toLowerCase();
+    products = products.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q)
+    );
+  }
+
+  if (typeof category === 'string' && category && category !== 'All') {
+    products = products.filter((p) => p.category === category);
+  }
+
+  if (minPrice != null && !isNaN(Number.parseFloat(minPrice))) {
+    products = products.filter((p) => p.price >= Number.parseFloat(minPrice));
+  }
+  if (maxPrice != null && !isNaN(Number.parseFloat(maxPrice))) {
+    products = products.filter((p) => p.price <= Number.parseFloat(maxPrice));
+  }
+
+  if (sort === 'price_asc') products.sort((a, b) => a.price - b.price);
+  else if (sort === 'price_desc') products.sort((a, b) => b.price - a.price);
+  else if (sort === 'rating') products.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  else if (sort === 'newest') products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  return {
+    products: products.slice(skip, skip + parsedLimit),
+    total: products.length
+  };
+};
+
 // GET /api/products
 const getProducts = async (req, res, next) => {
   try {
-    const { search, category, sort, minPrice, maxPrice, limit = 20, page = 1 } = req.query;
-    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
-    const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+    const { limit = 20, page = 1 } = req.query;
+    const parsedLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 20, 1), 100);
+    const parsedPage = Math.max(Number.parseInt(page, 10) || 1, 1);
     const skip = (parsedPage - 1) * parsedLimit;
 
+    let products, total;
+
     if (isMockMode()) {
-      const db = require('../utils/db').readDB();
-      let products = [...db.products];
+      const result = handleMockProducts(req.query, parsedLimit, skip);
+      products = result.products;
+      total = result.total;
+    } else {
+      const query = buildMongoQuery(req.query);
+      const sortOption = buildMongoSort(req.query.sort);
 
-      if (search) {
-        const q = search.toLowerCase();
-        products = products.filter(
-          (p) =>
-            p.name.toLowerCase().includes(q) ||
-            p.category.toLowerCase().includes(q) ||
-            p.description.toLowerCase().includes(q)
-        );
-      }
-
-      if (category && category !== 'All') {
-        products = products.filter((p) => p.category === category);
-      }
-
-      if (minPrice) products = products.filter((p) => p.price >= parseFloat(minPrice));
-      if (maxPrice) products = products.filter((p) => p.price <= parseFloat(maxPrice));
-
-      if (sort === 'price_asc') products.sort((a, b) => a.price - b.price);
-      else if (sort === 'price_desc') products.sort((a, b) => b.price - a.price);
-      else if (sort === 'rating') products.sort((a, b) => b.rating - a.rating);
-      else if (sort === 'newest') products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-      const total = products.length;
-      const totalPages = Math.ceil(total / parsedLimit);
-      return res.json({
-        products: products.slice(skip, skip + parsedLimit),
-        total,
-        page: parsedPage,
-        totalPages,
-        hasMore: parsedPage < totalPages,
-      });
+      [products, total] = await Promise.all([
+        Product.find(query)
+          .select('name price category images stock brand ratingsAverage ratingsQuantity discountPrice createdAt')
+          .sort(sortOption)
+          .skip(skip)
+          .limit(parsedLimit),
+        Product.countDocuments(query),
+      ]);
     }
-
-    // MongoDB Mode
-    const query = {};
-    if (search) query.$text = { $search: search };
-    if (category && category !== 'All') query.category = category;
-    if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = parseFloat(minPrice);
-      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
-    }
-
-    const sortOption = {};
-    if (sort === 'price_asc') sortOption.price = 1;
-    else if (sort === 'price_desc') sortOption.price = -1;
-    else if (sort === 'rating') sortOption.ratingsAverage = -1;
-    else sortOption.createdAt = -1;
-
-    const [products, total] = await Promise.all([
-      Product.find(query)
-        .select('name price category images stock brand ratingsAverage ratingsQuantity discountPrice createdAt')
-        .sort(sortOption)
-        .skip(skip)
-        .limit(parsedLimit),
-      Product.countDocuments(query),
-    ]);
 
     const totalPages = Math.ceil(total / parsedLimit);
     res.json({

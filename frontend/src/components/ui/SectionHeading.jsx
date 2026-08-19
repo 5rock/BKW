@@ -1,9 +1,9 @@
 import React from 'react';
 
 const SectionHeading = ({ title, subtitle, className = '', align = 'center' }) => {
-  const alignmentClass = 
-    align === 'left' ? 'text-left' :
-    align === 'right' ? 'text-right' : 'text-center';
+  let alignmentClass = 'text-center';
+  if (align === 'left') alignmentClass = 'text-left';
+  else if (align === 'right') alignmentClass = 'text-right';
 
   return (
     <div className={`flex flex-col gap-4 ${alignmentClass} ${className}`}>

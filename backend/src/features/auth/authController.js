@@ -178,13 +178,13 @@ const logout = async (req, res, next) => {
       try {
         const jwt = require('jsonwebtoken');
         const decoded = jwt.decode(refreshToken);
-        if (decoded && decoded.id) {
+        if (decoded?.id) {
           await User.findByIdAndUpdate(decoded.id, {
             $pull: { refreshTokens: refreshToken }
           });
         }
       } catch (err) {
-        // Ignore decode errors on logout
+        console.error('[Logout] Token decode error:', err.message);
       }
     }
 

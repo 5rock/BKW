@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Search, Heart, User, ShoppingBag, Menu, X, Home, Sparkles } from 'lucide-react';
+import { Search, Heart, User, ShoppingBag, Menu, X, Home } from 'lucide-react';
 import useAuthStore from '@/store/authStore';
 import useCartStore from '@/store/cartStore';
 
@@ -61,7 +61,7 @@ const Navbar = () => {
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center space-x-6">
-              <button aria-label="Search" className="text-text-primary hover:text-color-gold transition-colors duration-300">
+              <button type="button" aria-label="Search" className="text-text-primary hover:text-color-gold transition-colors duration-300">
                 <Search size={20} strokeWidth={1.5} />
               </button>
               <Link to="/wishlist" aria-label="Wishlist" className="text-text-primary hover:text-color-gold transition-colors duration-300">
@@ -82,6 +82,7 @@ const Navbar = () => {
 
             {/* Mobile Menu Toggle */}
             <button 
+              type="button"
               className="md:hidden text-text-primary z-50"
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="Toggle Menu"

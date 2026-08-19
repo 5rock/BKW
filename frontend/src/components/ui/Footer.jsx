@@ -39,15 +39,18 @@ const Footer = memo(() => {
               A curated digital showroom for verified luxury jewelry, timepieces, and bullion. Designed for the modern collector.
             </p>
             <div className="flex gap-4">
-              {SOCIAL_ICONS.map((Social, index) => (
-                <a
-                  key={index}
-                  href={Social.href}
-                  className="w-10 h-10 rounded-full border border-surface-border flex items-center justify-center text-text-secondary hover:text-color-gold hover:border-color-gold transition-colors duration-300"
-                >
-                  <Social.icon size={16} strokeWidth={1.5} />
-                </a>
-              ))}
+              {SOCIAL_ICONS.map((Social, index) => {
+                const Icon = Social.icon;
+                return (
+                  <a
+                    key={index}
+                    href={Social.href}
+                    className="w-10 h-10 rounded-full border border-surface-border flex items-center justify-center text-text-secondary hover:text-color-gold hover:border-color-gold transition-colors duration-300"
+                  >
+                    <Icon size={16} strokeWidth={1.5} />
+                  </a>
+                );
+              })}
             </div>
           </div>
 

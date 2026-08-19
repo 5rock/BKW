@@ -5,7 +5,7 @@ import { Heart, Share2, ShieldCheck, Truck, RotateCcw, Zap, ChevronRight, Box, I
 import toast from 'react-hot-toast';
 import useAuthStore from '@/store/authStore';
 import useCartStore from '@/store/cartStore';
-import ProductCard from '@/features/products/components/ProductCard';
+
 import Product3DViewer from '@/features/products/components/Product3DViewer';
 import StarRating from '@/features/products/components/StarRating';
 import { getProductById, getRelatedProducts } from '@/services/productService';
@@ -335,8 +335,8 @@ const ProductDetailsPage = () => {
                 [Truck, product.deliveryTime || 'Insured Delivery'],
                 [ShieldCheck, product.warrantyInfo || 'Authenticated'],
                 [RotateCcw, 'Complimentary Returns'],
-              ].map(([Icon, text], i) => (
-                <div key={i} className="flex flex-col items-center text-center gap-3">
+              ].map(([Icon, text]) => (
+                <div key={text} className="flex flex-col items-center text-center gap-3">
                   <div className="w-10 h-10 rounded-full border border-surface-border flex items-center justify-center text-color-gold">
                     <Icon size={16} />
                   </div>

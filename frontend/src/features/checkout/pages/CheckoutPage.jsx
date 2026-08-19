@@ -177,8 +177,9 @@ const CheckoutPage = () => {
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-text-secondary mb-2">Street Address</label>
+                    <label htmlFor="address" className="block text-[10px] font-bold uppercase tracking-widest text-text-secondary mb-2">Street Address</label>
                     <input
+                      id="address"
                       required
                       type="text"
                       value={shipping.address}
@@ -189,8 +190,9 @@ const CheckoutPage = () => {
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-text-secondary mb-2">City</label>
+                      <label htmlFor="city" className="block text-[10px] font-bold uppercase tracking-widest text-text-secondary mb-2">City</label>
                       <input
+                        id="city"
                         required
                         type="text"
                         value={shipping.city}
@@ -200,8 +202,9 @@ const CheckoutPage = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-text-secondary mb-2">Postal Code</label>
+                      <label htmlFor="postalCode" className="block text-[10px] font-bold uppercase tracking-widest text-text-secondary mb-2">Postal Code</label>
                       <input
+                        id="postalCode"
                         required
                         type="text"
                         value={shipping.postalCode}
@@ -212,8 +215,9 @@ const CheckoutPage = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-text-secondary mb-2">Country</label>
+                    <label htmlFor="country" className="block text-[10px] font-bold uppercase tracking-widest text-text-secondary mb-2">Country</label>
                     <input
+                      id="country"
                       required
                       type="text"
                       value={shipping.country}
@@ -246,7 +250,7 @@ const CheckoutPage = () => {
                  ) : (
                    <div className="bg-surface-primary border border-surface-border p-8 rounded-2xl text-center">
                       <p className="text-text-primary mb-6">Payment intent unavailable. Demo mode active.</p>
-                      <button onClick={() => { clearCart(); navigate('/orders/' + order._id); }} className="luxury-button">
+                      <button type="button" onClick={() => { clearCart(); navigate('/orders/' + order._id); }} className="luxury-button">
                         Simulate Successful Payment
                       </button>
                    </div>

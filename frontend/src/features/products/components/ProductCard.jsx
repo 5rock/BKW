@@ -1,6 +1,6 @@
 import { memo, useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, Heart, ShoppingBag, Sparkles, Zap } from 'lucide-react';
+import { Eye, Heart, ShoppingBag, Zap } from 'lucide-react';
 import useCartStore from '@/store/cartStore';
 import { money, normalizeProduct } from '@/utils/productUtils';
 import StarRating from '@/features/products/components/StarRating';
@@ -81,6 +81,7 @@ const ProductCard = memo(({ product, onQuickView }) => {
         {/* Hover Action Buttons */}
         <div className="absolute right-4 top-4 z-10 flex flex-col gap-2 opacity-100 lg:opacity-0 lg:translate-x-4 lg:transition-all lg:duration-300 lg:group-hover:opacity-100 lg:group-hover:translate-x-0">
           <button
+            type="button"
             onClick={wishlist}
             className="grid h-10 w-10 place-items-center rounded-full bg-surface-primary/80 backdrop-blur-md text-text-primary hover:text-color-gold transition-colors border border-surface-border"
             aria-label="Wishlist"
@@ -88,6 +89,7 @@ const ProductCard = memo(({ product, onQuickView }) => {
             <Heart size={16} className={wished ? 'fill-color-gold text-color-gold' : ''} />
           </button>
           <button
+            type="button"
             onClick={openQuick}
             className="grid h-10 w-10 place-items-center rounded-full bg-surface-primary/80 backdrop-blur-md text-text-primary hover:text-color-gold transition-colors border border-surface-border"
             aria-label="Quick view"
@@ -130,6 +132,7 @@ const ProductCard = memo(({ product, onQuickView }) => {
                className="flex w-full items-center justify-between gap-1 rounded-none bg-surface-primary p-1 border border-surface-border shadow-2xl backdrop-blur-md"
              >
                <button
+                 type="button"
                  disabled={adding}
                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateItem(cartEntry.id, qtyInCart - 1); }}
                  className="grid h-10 w-10 place-items-center text-text-primary hover:text-color-gold transition-colors"
@@ -140,6 +143,7 @@ const ProductCard = memo(({ product, onQuickView }) => {
                  {qtyInCart} in Bag
                </span>
                <button
+                 type="button"
                  disabled={adding || item.stock <= qtyInCart}
                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateItem(cartEntry.id, qtyInCart + 1); }}
                  className="grid h-10 w-10 place-items-center text-text-primary hover:text-color-gold transition-colors"
@@ -149,6 +153,7 @@ const ProductCard = memo(({ product, onQuickView }) => {
              </div>
             ) : (
               <button
+                type="button"
                 disabled={adding || item.stock <= 0}
                 onClick={(event) => add(event)}
                 className="w-full bg-text-primary text-bg-primary py-4 text-xs font-bold uppercase tracking-widest hover:bg-color-gold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
@@ -190,6 +195,7 @@ const ProductCard = memo(({ product, onQuickView }) => {
             </div>
             
             <button
+              type="button"
               onClick={(event) => add(event, true)}
               className="text-text-secondary hover:text-color-gold transition-colors"
               aria-label="Buy now"
@@ -210,7 +216,7 @@ const ProductCard = memo(({ product, onQuickView }) => {
             className="relative grid w-full max-w-4xl overflow-hidden rounded-none border border-surface-border bg-bg-primary shadow-2xl animate-[menuIn_300ms_cubic-bezier(0.22,1,0.36,1)] md:grid-cols-2"
             onClick={(event) => event.stopPropagation()}
           >
-            <button onClick={() => setQuickOpen(false)} className="absolute top-4 right-4 z-10 text-text-secondary hover:text-text-primary">✕</button>
+            <button type="button" onClick={() => setQuickOpen(false)} className="absolute top-4 right-4 z-10 text-text-secondary hover:text-text-primary">✕</button>
             <div className="relative aspect-square h-full w-full bg-surface-primary">
               <LazyImage src={primaryImage} alt={item.title} width={800} height={800} containerClassName="absolute inset-0" className="object-cover w-full h-full" priority />
             </div>
@@ -236,6 +242,7 @@ const ProductCard = memo(({ product, onQuickView }) => {
               </div>
               <div className="flex flex-col gap-4">
                 <button
+                  type="button"
                   onClick={(event) => add(event)}
                   className="luxury-button w-full justify-center"
                 >

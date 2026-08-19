@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
@@ -167,10 +167,8 @@ const AnimatedRoutes = () => {
   );
 };
 
-import { initAuth } from '@/store/authStore';
-import useAuthStore from '@/store/authStore';
+import { initAuth, default as useAuthStore } from '@/store/authStore';
 import useCartStore from '@/store/cartStore';
-import { useEffect } from 'react';
 
 // Initialize Firebase Auth listener immediately
 initAuth();

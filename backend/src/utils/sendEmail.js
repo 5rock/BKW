@@ -7,14 +7,8 @@ const sendEmail = async ({ to, subject, text, html }) => {
     return; // Don't log during tests
   }
   
-  console.log('\n======================================================');
-  console.log('📧 MOCK EMAIL SENT');
-  console.log('------------------------------------------------------');
-  console.log(`To:      ${to}`);
-  console.log(`Subject: ${subject}`);
-  console.log('------------------------------------------------------');
-  console.log(`Text:\n${text}`);
-  console.log('======================================================\n');
+  const logData = { to, subject, text: typeof text === 'string' ? text.substring(0, 100) + '...' : text };
+  console.log('📧 MOCK EMAIL SENT:', JSON.stringify(logData));
   
   return;
 };

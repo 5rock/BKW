@@ -3,7 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, MeshDistortMaterial, ContactShadows, PresentationControls, Sparkles, BakeShadows } from '@react-three/drei';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import * as THREE from 'three';
+
 
 const AbstractGoldPiece = () => {
   const meshRef = useRef();

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Camera, Send, X, Sparkles, User, MessageCircle } from 'lucide-react';
+import { Camera, Send, X, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const INITIAL_MESSAGES = [
@@ -144,7 +144,7 @@ const Chatbot = () => {
                 <h3 className="text-xs font-bold uppercase tracking-widest text-text-primary">Private Concierge</h3>
                 <p className="flex items-center gap-2 text-[10px] text-text-secondary uppercase tracking-widest mt-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-color-gold animate-pulse" />
-                  At your service
+                  {' '}At your service
                 </p>
               </div>
             </div>
