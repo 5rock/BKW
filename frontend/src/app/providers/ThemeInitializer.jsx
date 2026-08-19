@@ -7,8 +7,8 @@ const ThemeInitializer = () => {
   useEffect(() => {
     const html = document.documentElement;
     // Add transition class to prevent instant snapping only on manual toggles, but skip on initial render
-    if (!html.hasAttribute('data-theme-initialized')) {
-      html.setAttribute('data-theme-initialized', 'true');
+    if (!html.dataset.themeInitialized) {
+      html.dataset.themeInitialized = 'true';
     } else {
       html.classList.add('theme-transition');
     }

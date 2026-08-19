@@ -29,7 +29,7 @@ const LazyImage = ({
   // Build responsive srcset from Unsplash URLs automatically
   // Unsplash supports ?w= param for on-the-fly resizing
   const buildSrcSet = (url) => {
-    if (!url || !url.includes('unsplash.com')) return undefined;
+    if (!url?.includes('unsplash.com')) return undefined;
     const base = url.split('?')[0];
     return [200, 400, 600, 800, 1200]
       .map((w) => `${base}?auto=format&fm=webp&fit=crop&w=${w}&q=75 ${w}w`)

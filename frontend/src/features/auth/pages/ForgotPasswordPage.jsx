@@ -96,8 +96,9 @@ const ForgotPasswordPage = () => {
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setError(''); }}
                   placeholder="name@company.com"
-                  className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-900 border rounded-xl text-sm dark:text-white outline-none transition-all
-                    ${error ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-transparent focus:border-amber-400 focus:ring-2 focus:ring-amber-100 dark:focus:ring-amber-900/30'}`}
+                  className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-900 border rounded-xl text-sm dark:text-white outline-none transition-all ${
+                    error ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-transparent focus:border-amber-400 focus:ring-2 focus:ring-amber-100 dark:focus:ring-amber-900/30'
+                  }`}
                 />
               </div>
               {error && <p className="text-xs text-red-500 mt-1 ml-1">{error}</p>}

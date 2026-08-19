@@ -17,9 +17,9 @@ const AuthLayout = ({ children, title, subtitle }) => (
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(184,120,54,0.16),transparent_34%),linear-gradient(135deg,#f4ece4_0%,#ead8c8_48%,#f1e7dc_100%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.24),transparent_34%),linear-gradient(135deg,#090704_0%,#221507_46%,#0d0b09_100%)]" />
     <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(61,47,38,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(61,47,38,0.05)_1px,transparent_1px)] [background-size:64px_64px] dark:[background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)]" />
 
-    {[...Array(18)].map((_, index) => (
+    {new Array(18).fill(null).map((_, index) => (
       <motion.span
-        key={index}
+        key={`sparkle-${index}`}
         className="absolute h-1 w-1 rounded-full bg-amber-200/70"
         style={{
           left: `${8 + ((index * 47) % 86)}%`,

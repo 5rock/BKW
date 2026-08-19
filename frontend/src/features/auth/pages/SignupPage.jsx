@@ -129,7 +129,7 @@ const SignupPage = () => {
               className={`${authInputClass} pl-12 pr-4`}
               {...register('email', {
                 required: 'Email address is required',
-                pattern: { value: /\S+@\S+\.\S+/, message: 'Enter a valid email address' },
+                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email address' },
               })}
             />
           </div>

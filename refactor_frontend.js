@@ -60,7 +60,7 @@ const allFiles = getAllFiles(srcDir);
 // 1. Convert all relative to @ alias
 allFiles.filter(f => f.endsWith('.js') || f.endsWith('.jsx')).forEach(file => {
   let content = fs.readFileSync(file, 'utf8');
-  content = content.replace(/(from\s+['"]|import\(['"])([.][^'"]+)(['"])/g, (match, prefix, relPath, suffix) => {
+  content = content.replaceAll(/(from\s+['"]|import\(['"])([.][^'"]+)(['"])/g, (match, prefix, relPath, suffix) => {
     const absoluteImport = path.resolve(path.dirname(file), relPath);
     const relativeToSrc = path.relative(srcDir, absoluteImport).replace(/\\/g, '/');
     if (relativeToSrc.startsWith('..')) return match;
@@ -110,7 +110,7 @@ allFiles.filter(f => f.endsWith('.js') || f.endsWith('.jsx')).forEach(file => {
     
     // Replace `@/oldImport` with `@/newImport`
     const regex = new RegExp(`@/${oldImport}(['"/])`, 'g');
-    content = content.replace(regex, `@/${newImport}$1`);
+    content = content.replaceAll(regex, `@/${newImport}$1`);
   });
   
   fs.writeFileSync(file, content, 'utf8');

@@ -83,7 +83,7 @@ const LoginPage = () => {
                 validate: (value) => {
                   const trimmed = value.trim();
                   const phone = /^\+?[1-9]\d{7,14}$/.test(trimmed.replace(/\s|-/g, ''));
-                  const email = /\S+@\S+\.\S+/.test(trimmed);
+                  const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
                   return email || phone || 'Enter a valid email or mobile number';
                 },
               })}

@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 function processFile(filePath) {
   let content = fs.readFileSync(filePath, 'utf8');
@@ -11,7 +11,7 @@ function processFile(filePath) {
     // If it ends with a number and no dash before it, e.g., clock3
     let fixedName = iconName;
     if (/[a-z]\d+$/.test(iconName)) {
-      fixedName = iconName.replace(/(\d+)$/, '-$1');
+      fixedName = iconName.replace(/\d+$/, '-$&');
     }
     if (fixedName !== iconName) {
       changed = true;

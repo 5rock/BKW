@@ -3,8 +3,6 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import Check from 'lucide-react/dist/esm/icons/check';
 import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
 import Circle from 'lucide-react/dist/esm/icons/circle';
-import clsx from 'clsx';
-import { twMerge } from 'tailwind-merge';
 import { cn } from '@/utils/cn';
 
 const DropdownMenu = DropdownMenuPrimitive.Root;

@@ -5,7 +5,7 @@ jest.setTimeout(30000); // 30 seconds to prevent hook timeouts during hash/DB op
 
 describe('Product Endpoints', () => {
   let token;
-  let sellerToken;
+
 
   beforeEach(async () => {
     // Register and login a normal user
@@ -27,7 +27,7 @@ describe('Product Endpoints', () => {
     const resSeller = await request(app).post('/api/auth/login').send({
       identifier: 'seller@example.com', password: 'Password123!'
     });
-    sellerToken = resSeller.headers['set-cookie'][0].split(';')[0].split('=')[1];
+
   });
 
   describe('GET /api/products', () => {

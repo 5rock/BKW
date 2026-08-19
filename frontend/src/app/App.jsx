@@ -167,7 +167,7 @@ const AnimatedRoutes = () => {
   );
 };
 
-import { initAuth, default as useAuthStore } from '@/store/authStore';
+import useAuthStore, { initAuth } from '@/store/authStore';
 import useCartStore from '@/store/cartStore';
 
 // Initialize Firebase Auth listener immediately

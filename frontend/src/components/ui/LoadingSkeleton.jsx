@@ -11,7 +11,7 @@ export const ProductCardSkeleton = () => (
         </div>
         <div className="flex gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="theme-card h-3.5 w-3.5 rounded" />
+            <div key={`star-${i}`} className="theme-card h-3.5 w-3.5 rounded" />
           ))}
         </div>
       </div>
@@ -49,7 +49,7 @@ export const ProductCardSkeleton = () => (
 export const PageSectionSkeleton = ({ rows = 8 }) => (
   <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
     {Array.from({ length: rows }).map((_, index) => (
-      <ProductCardSkeleton key={index} />
+      <ProductCardSkeleton key={`card-${index}`} />
     ))}
   </div>
 );
@@ -60,18 +60,22 @@ export const ProductDetailsSkeleton = () => (
       <div className="shimmer h-full w-full" />
     </div>
     <div className="space-y-5">
-      {Array.from({ length: 7 }).map((_, i) => (
-        <div
-          key={i}
-          className="theme-card overflow-hidden rounded-xl"
-          style={{
-            height: i === 0 ? '28px' : i === 1 ? '56px' : i === 2 ? '36px' : '44px',
-            width: i === 0 ? '40%' : i === 1 ? '90%' : i === 2 ? '30%' : '100%',
-          }}
-        >
-          <div className="shimmer h-full w-full" />
-        </div>
-      ))}
+      {Array.from({ length: 7 }).map((_, i) => {
+        let height = '44px';
+        let width = '100%';
+        if (i === 0) { height = '28px'; width = '40%'; }
+        else if (i === 1) { height = '56px'; width = '90%'; }
+        else if (i === 2) { height = '36px'; width = '30%'; }
+        return (
+          <div
+            key={`detail-${i}`}
+            className="theme-card overflow-hidden rounded-xl"
+            style={{ height, width }}
+          >
+            <div className="shimmer h-full w-full" />
+          </div>
+        );
+      })}
     </div>
   </div>
 );
@@ -80,7 +84,7 @@ export const CartSkeleton = () => (
   <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
     <div className="space-y-4">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="theme-card flex gap-4 overflow-hidden rounded-3xl p-4">
+        <div key={`cart-${i}`} className="theme-card flex gap-4 overflow-hidden rounded-3xl p-4">
           <div className="theme-card h-24 w-24 shrink-0 overflow-hidden rounded-2xl sm:h-32 sm:w-32">
             <div className="shimmer h-full w-full" />
           </div>

@@ -46,10 +46,10 @@ const buildMongoQuery = (queryObj) => {
   
   if (minPrice != null || maxPrice != null) {
     query.price = {};
-    if (minPrice != null && !isNaN(Number.parseFloat(minPrice))) {
+    if (minPrice != null && !Number.isNaN(Number.parseFloat(minPrice))) {
       query.price.$gte = Number.parseFloat(minPrice);
     }
-    if (maxPrice != null && !isNaN(Number.parseFloat(maxPrice))) {
+    if (maxPrice != null && !Number.isNaN(Number.parseFloat(maxPrice))) {
       query.price.$lte = Number.parseFloat(maxPrice);
     }
   }
@@ -85,10 +85,10 @@ const handleMockProducts = (reqQuery, parsedLimit, skip) => {
     products = products.filter((p) => p.category === category);
   }
 
-  if (minPrice != null && !isNaN(Number.parseFloat(minPrice))) {
+  if (minPrice != null && !Number.isNaN(Number.parseFloat(minPrice))) {
     products = products.filter((p) => p.price >= Number.parseFloat(minPrice));
   }
-  if (maxPrice != null && !isNaN(Number.parseFloat(maxPrice))) {
+  if (maxPrice != null && !Number.isNaN(Number.parseFloat(maxPrice))) {
     products = products.filter((p) => p.price <= Number.parseFloat(maxPrice));
   }
 

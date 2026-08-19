@@ -7,6 +7,12 @@ import Package from 'lucide-react/dist/esm/icons/package';
 import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
 import { money } from '@/utils/productUtils';
 
+const getOrderStatus = (order) => {
+  if (order.isDelivered) return { label: 'Delivered', styles: 'bg-emerald-500/20 text-emerald-400' };
+  if (order.isPaid) return { label: 'Processing', styles: 'bg-blue-500/20 text-blue-400' };
+  return { label: 'Unpaid', styles: 'bg-amber-500/20 text-amber-500' };
+};
+
 const OrderHistoryPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +50,9 @@ const OrderHistoryPage = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {orders.map((order) => (
+              {orders.map((order) => {
+                const status = getOrderStatus(order);
+                return (
                 <Link
                   key={order._id}
                   to={`/orders/${order._id}`}
@@ -53,12 +61,8 @@ const OrderHistoryPage = () => {
                   <div>
                     <div className="flex items-center gap-3">
                       <p className="theme-text font-black text-lg">Order #{order._id.slice(-6)}</p>
-                      <span className={`rounded-full px-3 py-1 text-xs font-black uppercase tracking-wider ${
-                        order.isDelivered ? 'bg-emerald-500/20 text-emerald-400' :
-                        order.isPaid ? 'bg-blue-500/20 text-blue-400' :
-                        'bg-amber-500/20 text-amber-500'
-                      }`}>
-                        {order.isDelivered ? 'Delivered' : order.isPaid ? 'Processing' : 'Unpaid'}
+                      <span className={`rounded-full px-3 py-1 text-xs font-black uppercase tracking-wider ${status.styles}`}>
+                        {status.label}
                       </span>
                     </div>
                     <p className="theme-muted mt-1 text-sm">{new Date(order.createdAt).toLocaleDateString()} • {order.orderItems.length} items</p>
@@ -70,7 +74,8 @@ const OrderHistoryPage = () => {
                     </div>
                   </div>
                 </Link>
-              ))}
+                );
+              })}
             </div>
           )}
         </Reveal>

@@ -128,6 +128,7 @@ const ProductCard = memo(({ product, onQuickView }) => {
           <div className="absolute inset-x-6 bottom-6 translate-y-4 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
             {qtyInCart > 0 ? (
                <div
+               role="presentation"
                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                className="flex w-full items-center justify-between gap-1 rounded-none bg-surface-primary p-1 border border-surface-border shadow-2xl backdrop-blur-md"
              >
@@ -209,10 +210,12 @@ const ProductCard = memo(({ product, onQuickView }) => {
       {/* Quick-view modal (CSS transitions only) */}
       {quickOpen && (
         <div
+          role="presentation"
           className="fixed inset-0 z-[100] grid place-items-center bg-bg-primary/90 p-4 backdrop-blur-md animate-[fadeIn_200ms_ease-out]"
           onClick={() => setQuickOpen(false)}
         >
           <div
+            role="presentation"
             className="relative grid w-full max-w-4xl overflow-hidden rounded-none border border-surface-border bg-bg-primary shadow-2xl animate-[menuIn_300ms_cubic-bezier(0.22,1,0.36,1)] md:grid-cols-2"
             onClick={(event) => event.stopPropagation()}
           >

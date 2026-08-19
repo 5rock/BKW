@@ -4,6 +4,8 @@ import { OrbitControls, useGLTF, Stage, Bounds, Html, BakeShadows } from '@react
 import { Loader2, Maximize2, Minimize2, AlertCircle } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
+const Color = 'color';
+
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -120,7 +122,7 @@ const Product3DViewer = ({ modelUrl, fallbackImage, className }) => {
           }}
           dpr={[1, 1.5]} // Performance: limit pixel ratio on high DPI displays
         >
-          <color attach="background" args={['#050505']} />
+          <Color attach="background" args={['#050505']} />
           <Suspense fallback={
             <Html center>
               <div className="flex flex-col items-center justify-center p-6 bg-surface-primary/80 backdrop-blur-md rounded-2xl border border-surface-border shadow-2xl">

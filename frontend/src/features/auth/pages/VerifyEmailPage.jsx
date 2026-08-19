@@ -87,7 +87,11 @@ const VerifyEmailPage = () => {
           disabled={sending || cooldown > 0}
           className="w-full py-3 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all disabled:opacity-50 text-sm"
         >
-          {sending ? 'Sending…' : cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend verification email'}
+          {(() => {
+            if (sending) return 'Sending…';
+            if (cooldown > 0) return `Resend in ${cooldown}s`;
+            return 'Resend verification email';
+          })()}
         </button>
 
         <button

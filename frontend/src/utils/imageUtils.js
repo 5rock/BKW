@@ -20,7 +20,7 @@ const FIREBASE_HOSTS = ['firebasestorage.googleapis.com', 'storage.googleapis.co
  * @returns {string} Optimized URL
  */
 export const optimizeUnsplash = (url, { w, q = 75, fm = 'webp' } = {}) => {
-  if (!url || !url.includes(UNSPLASH_HOST)) return url;
+  if (!url?.includes(UNSPLASH_HOST)) return url;
   try {
     const u = new URL(url);
     if (!u.searchParams.has('fm'))   u.searchParams.set('fm', fm);
@@ -48,7 +48,7 @@ export const isFirebaseStorageUrl = (url = '') =>
  * @returns {string} srcset attribute value
  */
 export const unsplashSrcSet = (url) => {
-  if (!url || !url.includes(UNSPLASH_HOST)) return undefined;
+  if (!url?.includes(UNSPLASH_HOST)) return undefined;
   const widths = [480, 768, 1024, 1280, 1600];
   return widths
     .map((w) => `${optimizeUnsplash(url, { w, q: 75, fm: 'webp' })} ${w}w`)

@@ -29,7 +29,7 @@ const ResetPasswordPage = () => {
     if (!form.password)              e.password = 'Password is required';
     else if (form.password.length < 8) e.password = 'At least 8 characters required';
     else if (!/[A-Z]/.test(form.password)) e.password = 'Must have an uppercase letter';
-    else if (!/[0-9]/.test(form.password)) e.password = 'Must include a number';
+    else if (!/\d/.test(form.password)) e.password = 'Must include a number';
     if (form.password !== form.confirm) e.confirm = 'Passwords do not match';
     return e;
   };
@@ -127,8 +127,9 @@ const ResetPasswordPage = () => {
                   value={form.password}
                   onChange={(e) => { setForm((f) => ({ ...f, password: e.target.value })); setErrors((er) => ({ ...er, password: '' })); }}
                   placeholder="Min. 8 characters"
-                  className={`w-full pl-12 pr-12 py-3.5 bg-gray-50 dark:bg-gray-900 border rounded-xl text-sm dark:text-white outline-none transition-all
-                    ${errors.password ? 'border-red-400' : 'border-transparent focus:border-amber-400 focus:ring-2 focus:ring-amber-100 dark:focus:ring-amber-900/30'}`}
+                  className={`w-full pl-12 pr-12 py-3.5 bg-gray-50 dark:bg-gray-900 border rounded-xl text-sm dark:text-white outline-none transition-all ${
+                    errors.password ? 'border-red-400' : 'border-transparent focus:border-amber-400 focus:ring-2 focus:ring-amber-100 dark:focus:ring-amber-900/30'
+                  }`}
                 />
                 <button
                   type="button"
@@ -158,8 +159,9 @@ const ResetPasswordPage = () => {
                   value={form.confirm}
                   onChange={(e) => { setForm((f) => ({ ...f, confirm: e.target.value })); setErrors((er) => ({ ...er, confirm: '' })); }}
                   placeholder="Repeat password"
-                  className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-900 border rounded-xl text-sm dark:text-white outline-none transition-all
-                    ${errors.confirm ? 'border-red-400' : 'border-transparent focus:border-amber-400 focus:ring-2 focus:ring-amber-100 dark:focus:ring-amber-900/30'}`}
+                  className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-900 border rounded-xl text-sm dark:text-white outline-none transition-all ${
+                    errors.confirm ? 'border-red-400' : 'border-transparent focus:border-amber-400 focus:ring-2 focus:ring-amber-100 dark:focus:ring-amber-900/30'
+                  }`}
                 />
               </div>
               {errors.confirm && <p className="text-xs text-red-500 mt-1 ml-1">{errors.confirm}</p>}

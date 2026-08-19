@@ -15,7 +15,6 @@ const stripePromise = loadStripe(STRIPE_PK);
 const CheckoutForm = ({ clientSecret, orderId, totalPrice }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const clearCart = useCartStore((s) => s.clearCart);
 

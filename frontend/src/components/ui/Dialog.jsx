@@ -1,8 +1,6 @@
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import X from 'lucide-react/dist/esm/icons/x';
-import clsx from 'clsx';
-import { twMerge } from 'tailwind-merge';
 import { cn } from '@/utils/cn';
 
 const Dialog = DialogPrimitive.Root;

@@ -1,15 +1,9 @@
-import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
 import Flame from 'lucide-react/dist/esm/icons/flame';
 import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
 import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
-import { Autoplay, EffectFade } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/effect-fade';
-import { heroSlides } from '@/constants/marketplace';
 import { padTime, useCountdown } from '@/hooks/useCountdown';
 import LuxuryButton from '@/components/ui/LuxuryButton';
 

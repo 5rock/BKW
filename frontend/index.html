@@ -56,7 +56,8 @@
           var html = document.documentElement;
           html.classList.add(theme);
           html.style.colorScheme = theme;
-        } catch (_) {
+        } catch (error) {
+          console.warn('Theme initialization error:', error);
           document.documentElement.classList.add('dark');
           document.documentElement.style.colorScheme = 'dark';
         }

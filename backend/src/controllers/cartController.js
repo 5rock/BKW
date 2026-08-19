@@ -10,7 +10,7 @@ const formatCartResponse = (cartItems) => {
     const price = item.product.price || 0;
     return sum + price * item.quantity;
   }, 0);
-  return { items: cartItems, total: parseFloat(total.toFixed(2)) };
+  return { items: cartItems, total: Number.parseFloat(total.toFixed(2)) };
 };
 
 // GET /api/cart (protected)
@@ -56,8 +56,8 @@ const addToCart = async (req, res, next) => {
 
     if (isMockMode()) {
       const db = readDB();
-      const product = db.products.find((p) => p.id === productId || p._id === productId);
-      if (!product) return res.status(404).json({ message: 'Product not found' });
+      const productExists = db.products.some((p) => p.id === productId || p._id === productId);
+      if (!productExists) return res.status(404).json({ message: 'Product not found' });
 
       let userCart = db.carts.find((c) => c.userId === req.user.id);
       if (!userCart) {

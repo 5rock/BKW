@@ -19,9 +19,9 @@ const routeFor = (label) => {
 };
 
 const SOCIAL_ICONS = [
-  { icon: Camera, href: '#' },
-  { icon: Globe, href: '#' },
-  { icon: MessageCircle, href: '#' },
+  { icon: Camera, href: '#instagram' },
+  { icon: Globe, href: '#website' },
+  { icon: MessageCircle, href: '#contact' },
 ];
 
 const Footer = memo(() => {
@@ -43,7 +43,7 @@ const Footer = memo(() => {
                 const Icon = Social.icon;
                 return (
                   <a
-                    key={index}
+                    key={Social.href}
                     href={Social.href}
                     className="w-10 h-10 rounded-full border border-surface-border flex items-center justify-center text-text-secondary hover:text-color-gold hover:border-color-gold transition-colors duration-300"
                   >

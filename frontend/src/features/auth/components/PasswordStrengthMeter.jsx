@@ -8,7 +8,7 @@
 const checks = [
   { label: 'At least 8 characters',    test: (p) => p.length >= 8 },
   { label: 'One uppercase letter',      test: (p) => /[A-Z]/.test(p) },
-  { label: 'One number',               test: (p) => /[0-9]/.test(p) },
+  { label: 'One number',               test: (p) => /\d/.test(p) },
   { label: 'One special character',    test: (p) => /[^A-Za-z0-9]/.test(p) },
 ];
 
@@ -33,7 +33,7 @@ const PasswordStrengthMeter = ({ password }) => {
       <div className="flex gap-1 h-1.5">
         {LEVELS.slice(0, 4).map((_, i) => (
           <div
-            key={i}
+            key={`level-${i}`}
             className={`flex-1 rounded-full transition-all duration-300 ${
               i < score ? level.color : 'bg-gray-200 dark:bg-gray-700'
             }`}

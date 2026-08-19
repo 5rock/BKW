@@ -4,6 +4,12 @@ import { Environment, Float, MeshDistortMaterial, ContactShadows, PresentationCo
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
+const Mesh = 'mesh';
+const TorusKnotGeometry = 'torusKnotGeometry';
+const Color = 'color';
+const AmbientLight = 'ambientLight';
+const SpotLight = 'spotLight';
+
 
 const AbstractGoldPiece = () => {
   const meshRef = useRef();
@@ -27,8 +33,8 @@ const AbstractGoldPiece = () => {
 
   return (
     <Float speed={1.5} rotationIntensity={0.5} floatIntensity={1}>
-      <mesh ref={meshRef} scale={1.5}>
-        <torusKnotGeometry args={[1, 0.3, 256, 64]} />
+      <Mesh ref={meshRef} scale={1.5}>
+        <TorusKnotGeometry args={[1, 0.3, 256, 64]} />
         <MeshDistortMaterial
           color="#C9A227"
           envMapIntensity={2.5}
@@ -39,7 +45,7 @@ const AbstractGoldPiece = () => {
           distort={0.2}
           speed={1.5}
         />
-      </mesh>
+      </Mesh>
     </Float>
   );
 };
@@ -54,9 +60,9 @@ const CinematicMarketHero = () => {
           dpr={[1, 1.5]}
           gl={{ antialias: true, powerPreference: 'high-performance', alpha: false }}
         >
-          <color attach="background" args={['#050505']} />
-          <ambientLight intensity={0.5} />
-          <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
+          <Color attach="background" args={['#050505']} />
+          <AmbientLight intensity={0.5} />
+          <SpotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
           
           <Suspense fallback={null}>
             <PresentationControls

@@ -28,12 +28,12 @@ self.addEventListener('install', (event) => {
 
 // ── Activate: clean old caches
 self.addEventListener('activate', (event) => {
-  const CURRENT_CACHES = [CACHE_NAME, STATIC_CACHE, IMAGE_CACHE, API_CACHE];
+  const CURRENT_CACHES = new Set([CACHE_NAME, STATIC_CACHE, IMAGE_CACHE, API_CACHE]);
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => !CURRENT_CACHES.includes(key))
+          .filter((key) => !CURRENT_CACHES.has(key))
           .map((key) => caches.delete(key))
       )
     ).then(() => self.clients.claim())
@@ -70,7 +70,6 @@ self.addEventListener('fetch', (event) => {
   // HTML navigation: Network-first
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(request, CACHE_NAME, 5000));
-    return;
   }
 });
 

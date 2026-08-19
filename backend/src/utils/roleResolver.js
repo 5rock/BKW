@@ -11,15 +11,19 @@
  *   3. everyone else  → 'customer'
  */
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
-  .split(',')
-  .map((e) => e.trim().toLowerCase())
-  .filter(Boolean);
+const ADMIN_EMAILS = new Set(
+  (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+);
 
-const APPROVED_SELLER_EMAILS = (process.env.APPROVED_SELLER_EMAILS || '')
-  .split(',')
-  .map((e) => e.trim().toLowerCase())
-  .filter(Boolean);
+const APPROVED_SELLER_EMAILS = new Set(
+  (process.env.APPROVED_SELLER_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+);
 
 /**
  * Resolve a user's role from their email.
@@ -28,8 +32,8 @@ const APPROVED_SELLER_EMAILS = (process.env.APPROVED_SELLER_EMAILS || '')
  */
 const resolveRole = (email = '') => {
   const normalized = email.trim().toLowerCase();
-  if (ADMIN_EMAILS.includes(normalized)) return 'admin';
-  if (APPROVED_SELLER_EMAILS.includes(normalized)) return 'seller';
+  if (ADMIN_EMAILS.has(normalized)) return 'admin';
+  if (APPROVED_SELLER_EMAILS.has(normalized)) return 'seller';
   return 'customer';
 };
 

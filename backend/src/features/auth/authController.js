@@ -104,7 +104,7 @@ const forgotPassword = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
   try {
-    const crypto = require('crypto');
+    const crypto = require('node:crypto');
     const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
     
     const user = await authService.resetPassword(hashedToken, req.body.password);
@@ -122,7 +122,7 @@ const refresh = async (req, res, next) => {
     let decoded;
     try {
       decoded = verifyRefreshToken(refreshToken);
-    } catch (err) {
+    } catch {
       // If token expired or invalid, we could check DB, but it's cryptographic failure
       return res.status(401).json({ message: 'Invalid or expired refresh token' });
     }
