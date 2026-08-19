@@ -40,7 +40,7 @@ export const useNotificationStore = create((set) => ({
 
   addNotification: ({ type = 'info', title, message, icon } = {}) => {
     const notification = {
-      id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      id: `notif-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
       type,
       title,
       message,
@@ -66,7 +66,7 @@ export const useNotificationStore = create((set) => ({
       );
       persist(next);
       // Decrement count only if it was actually unread
-      const wasUnread = state.notifications.find((n) => n.id === id && !n.read);
+      const wasUnread = state.notifications.some((n) => n.id === id && !n.read);
       return {
         notifications: next,
         unreadCount: wasUnread ? Math.max(0, state.unreadCount - 1) : state.unreadCount,

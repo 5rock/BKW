@@ -4,7 +4,7 @@
       "id": "u1778301084781",
       "name": "ritesh ",
       "email": "rocky295612@gmail.com",
-      "password": "$2a$10$QOJHSrX/Cmr96.cG81qr.u.WMp7cUoAi.rm3Q2m1wysAb3yHS49.q",
+      "password": "$2a$10$invalidhashinvalidhashinvalidhashinvalidhashinvalidhas",
       "role": "buyer",
       "createdAt": "2026-05-09T04:31:24.783Z"
     },
@@ -13,7 +13,7 @@
       "_id": "mock_1778685696567",
       "name": "System Admin",
       "email": "admin@goldmarket.com",
-      "password": "$2a$10$CPI8scQslmeKMYbLY34OfOaMwXsczR0cY.tmzc3vp27SSAfJfVAn6",
+      "password": "$2a$10$invalidhashinvalidhashinvalidhashinvalidhashinvalidhas",
       "role": "admin",
       "isVerified": true,
       "createdAt": "2026-05-13T15:21:36.567Z",

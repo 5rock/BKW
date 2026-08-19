@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('node:fs');
 ['audit_root.json', 'backend/audit_backend.json', 'frontend/audit_frontend.json'].forEach(f => {
   try {
     const data = JSON.parse(fs.readFileSync(f));

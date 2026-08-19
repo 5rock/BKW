@@ -159,7 +159,7 @@ app.use(generalLimiter);
 
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
-const path = require('path');
+const path = require('node:path');
 const swaggerDocument = YAML.load(path.join(__dirname, 'docs', 'swagger.yaml'));
 
 // ── API Documentation ─────────────────────────────────────────────────────────

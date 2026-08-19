@@ -230,9 +230,9 @@ const ProductUploadPage = () => {
                     <button type="button" key={preview.url} onClick={() => setThumbnailIndex(index)} className={`group relative aspect-square overflow-hidden rounded-xl border-2 transition-colors ${thumbnailIndex === index ? 'border-color-gold' : 'border-transparent'}`}>
                       <img src={preview.url} alt="Preview" className="h-full w-full object-cover" />
                       {thumbnailIndex === index && <CheckCircle2 size={16} className="absolute left-2 top-2 bg-bg-primary rounded-full text-color-gold" />}
-                      <span onClick={(e) => { e.stopPropagation(); setFiles((prev) => prev.filter((_, i) => i !== index)); }} className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white opacity-0 transition group-hover:opacity-100">
+                      <button type="button" aria-label="Remove image" onClick={(e) => { e.stopPropagation(); setFiles((prev) => prev.filter((_, i) => i !== index)); }} className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white opacity-0 transition group-hover:opacity-100">
                         <X size={12} />
-                      </span>
+                      </button>
                     </button>
                   ))}
                 </div>

@@ -125,7 +125,7 @@ export const uploadProductImage = async (file, userId) => {
     ]);
 
     const ext = file.name?.split('.').pop() || 'jpg';
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const uniqueName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
     const storageRef = ref(storage, `products/${userId || 'anonymous'}/${uniqueName}`);
 
     const snapshot = await uploadBytes(storageRef, file, {
@@ -146,8 +146,11 @@ export const uploadProductModel = async (file, userId) => {
       (await import('@/firebase/config')).getFirebaseStorage(),
     ]);
 
-    const ext = file.name?.split('.').pop() || 'glb';
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const ext = file.name?.split('.').pop()?.toLowerCase();
+    if (ext !== 'glb') {
+      throw new Error('Only .glb 3D models are allowed');
+    }
+    const uniqueName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.glb`;
     const storageRef = ref(storage, `models/${userId || 'anonymous'}/${uniqueName}`);
 
     const snapshot = await uploadBytes(storageRef, file);

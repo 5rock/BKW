@@ -16,7 +16,7 @@ const sendEmail = async ({ to, subject, text, html }) => {
   console.log(`Text:\n${text}`);
   console.log('======================================================\n');
   
-  return Promise.resolve();
+  return;
 };
 
 module.exports = sendEmail;
