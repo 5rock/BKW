@@ -18,6 +18,14 @@ const productSchema = new mongoose.Schema(
     seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     ratingsAverage: { type: Number, default: 0 },
     ratingsQuantity: { type: Number, default: 0 },
+    model3d: {
+      enabled: { type: Boolean, default: false },
+      url: String,
+      storagePath: String,
+      format: { type: String, enum: ['glb', 'gltf'], default: 'glb' },
+      sizeBytes: Number,
+      version: { type: Number, default: 1 }
+    },
   },
   { 
     timestamps: true,

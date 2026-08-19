@@ -1,8 +1,28 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// FIX: Lazy-initialize Stripe — if key is missing, endpoints return 503 instead of crashing
+let _stripe = null;
+const getStripe = () => {
+  if (!_stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) return null;
+    _stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  }
+  return _stripe;
+};
 const Order = require('../../models/Order');
 
-exports.createPaymentIntent = async (req, res) => {
+const requireStripe = (res) => {
+  const stripe = getStripe();
+  if (!stripe) {
+    res.status(503).json({ status: 'error', message: 'Payment service is not configured. Set STRIPE_SECRET_KEY.' });
+    return null;
+  }
+  return stripe;
+};
+
+exports.createPaymentIntent = async (req, res, next) => {
   try {
+    const stripe = requireStripe(res);
+    if (!stripe) return;
+
     const { orderId } = req.body;
 
     const order = await Order.findById(orderId);
@@ -24,11 +44,16 @@ exports.createPaymentIntent = async (req, res) => {
       data: { clientSecret: paymentIntent.client_secret }
     });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    next(error);
   }
 };
 
 exports.stripeWebhook = async (req, res) => {
+  const stripe = getStripe();
+  if (!stripe) {
+    return res.status(503).send('Payment service not configured');
+  }
+
   const payload = req.body;
   const sig = req.headers['stripe-signature'];
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;

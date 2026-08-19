@@ -12,7 +12,7 @@ import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import LockKeyhole from 'lucide-react/dist/esm/icons/lock-keyhole';
 import Mail from 'lucide-react/dist/esm/icons/mail';
 import UserRound from 'lucide-react/dist/esm/icons/user-round';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import AuthLayout from '@/features/auth/components/AuthLayout';
 import {
   authCheckboxClass,

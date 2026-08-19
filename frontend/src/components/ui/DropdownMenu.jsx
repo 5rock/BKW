@@ -5,10 +5,7 @@ import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
 import Circle from 'lucide-react/dist/esm/icons/circle';
 import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
-export function cn(...inputs) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from '@/utils/cn';
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;

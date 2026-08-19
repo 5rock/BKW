@@ -2,9 +2,6 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const { isMockMode } = require('../utils/connectDB');
 const { readDB, writeDB } = require('../utils/db');
-const { mockModel } = require('../utils/db');
-
-const MockProduct = mockModel('products');
 
 // Helper to format cart response
 const formatCartResponse = (cartItems) => {
@@ -17,7 +14,7 @@ const formatCartResponse = (cartItems) => {
 };
 
 // GET /api/cart (protected)
-const getCart = async (req, res) => {
+const getCart = async (req, res, next) => {
   try {
     if (isMockMode()) {
       const db = readDB();
@@ -35,22 +32,23 @@ const getCart = async (req, res) => {
     let cart = await Cart.findOne({ userId: req.user.id }).populate('items.productId');
     if (!cart) return res.json({ items: [], total: 0 });
 
-    // Format for frontend
+    // FIX: Format for frontend — use productId as both the item identifier and the product ref
+    // Cart items have _id: false, so we use productId as the stable identifier
     const enriched = cart.items.map(item => ({
-      id: item._id, // cart item id
-      productId: item.productId._id,
+      id: item.productId._id?.toString() || item.productId.toString(), // Use product ID as cart item ID
+      productId: item.productId._id || item.productId,
       quantity: item.quantity,
       product: item.productId
     }));
 
     return res.json(formatCartResponse(enriched));
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };
 
 // POST /api/cart (protected)
-const addToCart = async (req, res) => {
+const addToCart = async (req, res, next) => {
   try {
     const { productId, quantity = 1 } = req.body;
     if (!productId) return res.status(400).json({ message: 'productId is required' });
@@ -104,20 +102,20 @@ const addToCart = async (req, res) => {
     
     cart = await Cart.findOne({ userId: req.user.id }).populate('items.productId');
     const enriched = cart.items.map(item => ({
-      id: item._id,
-      productId: item.productId._id,
+      id: item.productId._id?.toString() || item.productId.toString(),
+      productId: item.productId._id || item.productId,
       quantity: item.quantity,
       product: item.productId
     }));
     
     return res.status(201).json(formatCartResponse(enriched));
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };
 
 // PUT /api/cart/:itemId (protected)
-const updateCartItem = async (req, res) => {
+const updateCartItem = async (req, res, next) => {
   try {
     const { quantity } = req.body;
     
@@ -142,8 +140,7 @@ const updateCartItem = async (req, res) => {
     const cart = await Cart.findOne({ userId: req.user.id });
     if (!cart) return res.status(404).json({ message: 'Cart not found' });
 
-    // ItemId from frontend might be cart item ID or product ID.
-    // Since cart item _id is disabled, we just check productId.
+    // FIX: Since cart item _id is disabled, match by productId
     let itemIndex = cart.items.findIndex(item => item.productId.toString() === req.params.itemId);
 
     if (itemIndex === -1) return res.status(404).json({ message: 'Item not found in cart' });
@@ -157,12 +154,12 @@ const updateCartItem = async (req, res) => {
     await cart.save();
     res.json({ message: 'Cart updated' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };
 
 // DELETE /api/cart/:itemId (protected)
-const removeFromCart = async (req, res) => {
+const removeFromCart = async (req, res, next) => {
   try {
     if (isMockMode()) {
       const db = readDB();
@@ -183,6 +180,7 @@ const removeFromCart = async (req, res) => {
     const cart = await Cart.findOne({ userId: req.user.id });
     if (!cart) return res.status(404).json({ message: 'Cart not found' });
 
+    // FIX: Match by productId since _id is disabled
     let itemIndex = cart.items.findIndex(item => item.productId.toString() === req.params.itemId);
 
     if (itemIndex === -1) return res.status(404).json({ message: 'Item not found in cart' });
@@ -192,7 +190,7 @@ const removeFromCart = async (req, res) => {
     
     res.json({ message: 'Item removed from cart' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };
 

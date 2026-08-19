@@ -3,47 +3,45 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
   future: {
-    // Only apply hover styles on devices that support hovering (not touch-primary).
-    // Fixes incorrect hover states on mobile which can cause CLS.
     hoverOnlyWhenSupported: true,
   },
   theme: {
     extend: {
       colors: {
         brand: {
-          yellow: '#FFD700',
-          red: '#FF3B3B',
-          white: '#FFFFFF',
-          dark: '#222222',
+          obsidian: 'var(--color-obsidian)',
+          graphite: 'var(--color-graphite)',
+          gold: 'var(--color-gold)',
+          champagne: 'var(--color-champagne)',
+          ivory: 'var(--color-ivory)',
+          white: 'var(--color-white)',
         },
         background: {
-          light: '#FFFFFF',
-          dark: '#111827',
+          primary: 'var(--bg-primary)',
+          secondary: 'var(--bg-secondary)',
+          card: 'var(--bg-card)',
         },
         surface: {
-          light: '#F3F4F6',
-          dark: '#1F2937',
+          primary: 'var(--surface-primary)',
+          secondary: 'var(--surface-secondary)',
+          border: 'var(--surface-border)',
         },
         text: {
-          light: '#222222',
-          dark: '#FFFFFF',
-          muted: {
-            light: '#6B7280',
-            dark: '#9CA3AF',
-          },
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
         },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        jakarta: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+        display: ['Playfair Display', 'Georgia', 'serif'],
         instrument: ['"Instrument Serif"', 'Georgia', 'serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',
         'slide-up': 'slideUp 0.5s ease-out',
-        'bounce-slow': 'bounce 3s infinite',
-        // Used by CategoryCarousel and TrustSection for CSS staggered reveals
         'fade-slide-up': 'fadeSlideUp 0.5s ease forwards',
+        'spin-slow': 'spin 8s linear infinite',
       },
       keyframes: {
         fadeIn: {
@@ -60,14 +58,12 @@ export default {
         },
       },
       transitionProperty: {
-        // Explicit narrow transition sets — used to replace broad `transition` class
-        // which recalculates ALL CSS properties and inflates style computation time.
         'transform-shadow': 'transform, box-shadow',
         'border-transform': 'border-color, transform',
+        'colors-shadow': 'background-color, border-color, color, fill, stroke, box-shadow',
       },
     },
   },
-  // Safelist dynamic classes used in JS (e.g. animation-delay inline styles)
   safelist: [
     'animate-[fadeSlideUp_0.5s_ease_forwards]',
     'cv-auto',

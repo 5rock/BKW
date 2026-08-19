@@ -46,7 +46,7 @@ const LazyWhenVisible = memo(({
     return () => observer.disconnect();
     // rootMargin is intentionally excluded from deps:
     // changing it after mount would create a new observer for no user-visible gain.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [visible]);
 
   return (

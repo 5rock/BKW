@@ -31,7 +31,7 @@ const chatWithAI = async (req, res) => {
     let prompt = `You are a helpful AI Shopping Assistant for GoldMarket. 
 User says: "${message || 'I uploaded an image'}". 
 If they are looking for a specific category like Watches, Sneakers, Laptops, Phones, or Electronics, reply conversationally and include the EXACT string '[REDIRECT:/products?category=CategoryName]' at the very end of your response.
-If they just say hello, greet them. Keep it brief.`;
+If they just say hello, greet them. Keep it brief. Do not use markdown for the redirect tag.`;
 
     const result = await model.generateContent(prompt);
     const textResponse = result.response.text();
@@ -39,9 +39,10 @@ If they just say hello, greet them. Keep it brief.`;
     let redirectUrl = null;
     let cleanText = textResponse;
 
-    const redirectMatch = textResponse.match(/\[REDIRECT:(.*?)\]/);
+    // Use a more robust regex that ignores surrounding whitespace/quotes just in case
+    const redirectMatch = textResponse.match(/\[\s*REDIRECT:\s*([^\]\s]+)\s*\]/i);
     if (redirectMatch) {
-      redirectUrl = redirectMatch[1];
+      redirectUrl = redirectMatch[1].replace(/['"]/g, ''); // strip accidental quotes
       cleanText = textResponse.replace(redirectMatch[0], '').trim();
     }
 

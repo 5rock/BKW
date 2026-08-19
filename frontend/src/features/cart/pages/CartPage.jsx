@@ -1,27 +1,9 @@
-/**
- * CartPage.jsx — Performance-optimised shopping cart.
- *
- * Fixes vs original:
- *  1. Removed motion.div layout — Framer Motion layout tracking forces expensive
- *     DOM measurement (getBoundingClientRect) on EVERY cart item change
- *  2. Removed AnimatePresence wrapper (not needed for simple list)
- *  3. Empty state: CSS animation replaces motion.div initial/animate
- *  4. Added useCartState / useCartActions to prevent full cart re-renders
- *     when only actions are needed (e.g., Checkout button)
- *  5. Tax and totals computed with useMemo instead of inline every render
- */
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import ShoppingBag from 'lucide-react/dist/esm/icons/shopping-bag';
-import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
-import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
-import Truck from 'lucide-react/dist/esm/icons/truck';
-import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
-import Tag from 'lucide-react/dist/esm/icons/tag';
+import { ShoppingBag, ArrowRight, ShieldCheck, Truck, ArrowLeft, Tag } from 'lucide-react';
 import useCartStore from '@/store/cartStore';
 import useAuthStore from '@/store/authStore';
 import CartItem from '@/features/cart/components/CartItem';
-import Reveal from '@/components/ui/Reveal';
 import { CartSkeleton } from '@/components/ui/LoadingSkeleton';
 
 const CartPage = () => {
@@ -33,154 +15,160 @@ const CartPage = () => {
   const cartItems = useMemo(() => allCartItems.filter(i => !i.savedForLater), [allCartItems]);
   const savedItems = useMemo(() => allCartItems.filter(i => i.savedForLater), [allCartItems]);
 
-  // Memoize derived totals — don't recompute on unrelated re-renders
   const { tax, shipping, grandTotal } = useMemo(() => {
     const t = cartTotal * 0.08;
-    const s = cartTotal > 150 ? 0 : 9.99;
+    const s = cartTotal > 150 ? 0 : 25; // Luxury shipping is typically higher unless free threshold met
     return { tax: t, shipping: s, grandTotal: cartTotal > 0 ? cartTotal + t + s : 0 };
   }, [cartTotal]);
 
   return (
-    <div className="theme-page min-h-screen pb-20 pt-28">
-      <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <Reveal className="mb-8 flex items-center gap-3">
-          <h1 className="theme-text text-3xl font-black tracking-tight md:text-4xl">
-            Shopping Cart
-          </h1>
+    <div className="min-h-screen bg-bg-primary pt-32 pb-24">
+      <main className="luxury-shell">
+        <div className="flex items-center justify-between mb-12 border-b border-surface-border pb-6">
+          <div className="flex items-center gap-4">
+            <h1 className="text-display text-4xl lg:text-5xl text-text-primary tracking-tight">
+              Your Bag
+            </h1>
+            {!loading && cartItems.length > 0 && (
+              <span className="bg-surface-primary text-text-primary border border-surface-border rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-widest">
+                {cartItems.length} {cartItems.length === 1 ? 'Item' : 'Items'}
+              </span>
+            )}
+          </div>
           {!user && (
-            <span className="rounded-full bg-amber-300/15 px-3 py-1 text-xs font-black text-amber-200">
-              Guest cart
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-text-muted hidden sm:block">
+              Guest Checkout Available
             </span>
           )}
-          {!loading && cartItems.length > 0 && (
-            <span className="theme-card rounded-full px-3 py-1 text-sm font-bold">
-              {cartItems.length} {cartItems.length === 1 ? 'Item' : 'Items'}
-            </span>
-          )}
-        </Reveal>
+        </div>
 
         {loading ? (
           <CartSkeleton />
         ) : (
-          <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
-            {/* Cart Items */}
-            <div className="flex-grow space-y-4">
+          <div className="flex flex-col lg:flex-row gap-16">
+            
+            {/* Bag Items */}
+            <div className="flex-grow">
               {cartItems.length === 0 ? (
-                <div className="theme-card animate-[fadeSlideUp_350ms_ease_forwards] flex flex-col items-center justify-center rounded-3xl py-20 text-center">
-                  {/* CSS animation replaces motion.div */}
-                  <div className="theme-card-strong mb-6 flex h-24 w-24 items-center justify-center rounded-full">
-                  <ShoppingBag className="h-10 w-10 text-amber-700/50 dark:text-white/30" />
+                <div className="flex flex-col items-center justify-center py-32 text-center bg-surface-primary border border-surface-border rounded-3xl">
+                  <div className="mb-8 p-6 rounded-full bg-bg-primary border border-surface-border shadow-inner">
+                    <ShoppingBag size={48} className="text-text-muted" strokeWidth={1} />
+                  </div>
+                  <h3 className="text-display text-3xl text-text-primary mb-4">Your bag is empty</h3>
+                  <p className="text-text-secondary max-w-sm mb-10">
+                    Discover extraordinary pieces crafted with precision. Your next legacy awaits.
+                  </p>
+                  <Link to="/collections" className="luxury-button">
+                    Explore Collections
+                  </Link>
                 </div>
-                <h3 className="theme-text text-2xl font-bold">Your cart is empty</h3>
-                <p className="theme-muted mt-2 max-w-sm">
-                  Looks like you haven't added anything to your cart yet. Discover something amazing today!
-                </p>
-                <Link
-                  to="/products"
-                  className="mt-8 rounded-full bg-amber-300 px-10 py-4 font-black text-black shadow-[0_16px_50px_rgba(245,197,82,0.2)] transition-[background-color,transform] hover:bg-amber-200 hover:scale-105 active:scale-95"
-                >
-                  Start Shopping
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Plain div — no layout animation tracking overhead */}
-                {cartItems.map((item) => (
-                  <CartItem key={item.id} item={item} />
-                ))}
-              </div>
-            )}
-
-            {!loading && cartItems.length > 0 && (
-              <div className="pt-8">
-                <Link
-                  to="/products"
-                  className="group inline-flex items-center gap-2 font-bold text-amber-800 transition-colors hover:text-amber-700 dark:text-white/60 dark:hover:text-amber-200"
-                >
-                  <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
-                  Continue Shopping
-                </Link>
-              </div>
-            )}
-
-            {!loading && savedItems.length > 0 && (
-              <div className="pt-8">
-                <h2 className="theme-text mb-4 text-2xl font-black">Saved for Later</h2>
-                <div className="space-y-4">
-                  {savedItems.map((item) => (
+              ) : (
+                <div className="space-y-6">
+                  {cartItems.map((item) => (
                     <CartItem key={item.id} item={item} />
                   ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Order Summary Sidebar */}
-          {cartItems.length > 0 && (
-            <aside className="w-full flex-shrink-0 lg:w-[420px]">
-              <div className="theme-card sticky top-32 rounded-3xl p-6 sm:p-8">
-                <h2 className="theme-text mb-6 text-2xl font-bold">Order Summary</h2>
-
-                {/* Promo Code */}
-                <div className="theme-input mb-8 flex gap-2 overflow-hidden rounded-xl p-1">
-                  <Tag className="theme-soft ml-3 h-5 w-5 self-center" />
-                  <input
-                    type="text"
-                    placeholder="Promo Code"
-                    className="min-w-0 flex-grow border-none bg-transparent px-2 py-2.5 text-sm outline-none placeholder:text-[var(--color-soft)]"
-                  />
-                  <button className="shrink-0 rounded-lg bg-amber-300 px-4 text-sm font-bold text-black transition-colors hover:bg-amber-200">
-                    Apply
-                  </button>
-                </div>
-
-                <div className="space-y-4 border-b border-[var(--color-border)] pb-6">
-                  <div className="theme-muted flex justify-between">
-                    <span>Subtotal</span>
-                    <span className="theme-text font-medium">${cartTotal.toFixed(2)}</span>
-                  </div>
-                  <div className="theme-muted flex justify-between">
-                    <span>Estimated Tax (8%)</span>
-                    <span className="theme-text font-medium">${tax.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="theme-muted">Shipping</span>
-                    {shipping === 0 ? (
-                      <span className="font-bold text-emerald-400">FREE</span>
-                    ) : (
-                      <span className="theme-text font-medium">${shipping.toFixed(2)}</span>
-                    )}
+                  
+                  <div className="pt-8 flex justify-between items-center border-t border-surface-border mt-8">
+                    <Link
+                      to="/collections"
+                      className="group inline-flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-text-secondary hover:text-color-gold transition-colors"
+                    >
+                      <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                      Continue Shopping
+                    </Link>
                   </div>
                 </div>
+              )}
 
-                <div className="py-6">
-                  <div className="flex items-end justify-between">
-                    <span className="theme-text text-lg font-bold">Total</span>
-                    <span className="theme-text text-3xl font-black">${grandTotal.toFixed(2)}</span>
+              {/* Saved Items */}
+              {savedItems.length > 0 && (
+                <div className="pt-20">
+                  <h2 className="text-display text-2xl text-text-primary mb-8 border-b border-surface-border pb-4">Saved Pieces</h2>
+                  <div className="space-y-6">
+                    {savedItems.map((item) => (
+                      <CartItem key={item.id} item={item} />
+                    ))}
                   </div>
-                  <p className="theme-soft mt-2 text-right text-xs">Inclusive of all taxes and fees</p>
                 </div>
+              )}
+            </div>
 
-                <Link to="/checkout" className="group flex w-full items-center justify-center gap-2 rounded-full bg-amber-300 py-4 text-lg font-black text-black transition-[background-color,box-shadow,transform] hover:bg-amber-200 hover:shadow-[0_0_30px_rgba(245,197,82,0.3)] active:scale-95">
-                  Proceed to Checkout
-                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </Link>
+            {/* Order Summary */}
+            {cartItems.length > 0 && (
+              <aside className="w-full lg:w-[440px] flex-shrink-0">
+                <div className="sticky top-32 bg-surface-primary border border-surface-border rounded-[2rem] p-8 lg:p-10 shadow-2xl">
+                  <h2 className="text-display text-2xl text-text-primary mb-8">Summary</h2>
 
-                <div className="theme-card-strong mt-8 space-y-4 rounded-2xl p-4">
-                  {[
-                    { Icon: ShieldCheck, text: 'Secure 256-bit SSL encrypted payments' },
-                    { Icon: Truck, text: 'Free delivery on orders over $150' },
-                  ].map(({ Icon, text }) => (
-                    <div key={text} className="theme-muted flex items-center gap-3 text-sm">
-                      <Icon className="h-5 w-5 shrink-0 text-emerald-400" />
-                      <span className="font-medium">{text}</span>
+                  {/* Promo Code */}
+                  <div className="mb-10">
+                    <div className="flex bg-bg-primary border border-surface-border rounded-full p-1.5 focus-within:border-color-gold transition-colors">
+                      <div className="pl-4 flex items-center justify-center">
+                        <Tag size={16} className="text-text-muted" />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Complimentary Code"
+                        className="flex-grow bg-transparent px-4 py-3 text-sm text-text-primary outline-none placeholder:text-text-muted"
+                      />
+                      <button className="bg-text-primary text-bg-primary px-6 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-color-gold transition-colors">
+                        Apply
+                      </button>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="space-y-5 border-b border-surface-border pb-8 text-sm tracking-wide">
+                    <div className="flex justify-between items-center text-text-secondary">
+                      <span>Subtotal</span>
+                      <span className="text-text-primary font-medium">${cartTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-text-secondary">
+                      <span>Estimated Tax</span>
+                      <span className="text-text-primary font-medium">${tax.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-text-secondary">
+                      <span>Insured Shipping</span>
+                      {shipping === 0 ? (
+                        <span className="text-color-gold font-bold uppercase tracking-widest text-[10px]">Complimentary</span>
+                      ) : (
+                        <span className="text-text-primary font-medium">${shipping.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="py-8">
+                    <div className="flex items-end justify-between mb-2">
+                      <span className="text-text-primary text-lg font-medium">Total</span>
+                      <span className="text-text-primary text-4xl font-light tracking-tight">${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <p className="text-text-muted text-[10px] uppercase tracking-widest text-right">USD inclusive of applicable duties</p>
+                  </div>
+
+                  <Link to="/checkout" className="luxury-button w-full flex justify-between items-center">
+                    Proceed to Checkout
+                    <ArrowRight size={18} />
+                  </Link>
+
+                  <div className="mt-10 space-y-6 pt-8 border-t border-surface-border">
+                    {[
+                      { Icon: ShieldCheck, title: 'Secure Payment', text: 'Encrypted & Authenticated' },
+                      { Icon: Truck, title: 'Insured Delivery', text: 'Global tracked shipping' },
+                    ].map(({ Icon, title, text }) => (
+                      <div key={title} className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-full bg-bg-primary border border-surface-border flex items-center justify-center flex-shrink-0 text-text-primary">
+                          <Icon size={16} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-text-primary tracking-wide mb-1">{title}</p>
+                          <p className="text-xs text-text-secondary">{text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </aside>
-          )}
-        </div>
+              </aside>
+            )}
+            
+          </div>
         )}
       </main>
     </div>

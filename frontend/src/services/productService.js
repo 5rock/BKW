@@ -117,7 +117,44 @@ export const getRelatedProducts = async (product, count = 8, signal) => {
   return result.products.filter((item) => item.id !== product.id).slice(0, count);
 };
 
-export const uploadProductImage = async (file) => {
-  console.warn('[productService] Image upload not yet implemented. Using object URL placeholder.');
-  return URL.createObjectURL(file);
+export const uploadProductImage = async (file, userId) => {
+  try {
+    const [{ ref, uploadBytes, getDownloadURL }, storage] = await Promise.all([
+      import('firebase/storage'),
+      (await import('@/firebase/config')).getFirebaseStorage(),
+    ]);
+
+    const ext = file.name?.split('.').pop() || 'jpg';
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const storageRef = ref(storage, `products/${userId || 'anonymous'}/${uniqueName}`);
+
+    const snapshot = await uploadBytes(storageRef, file, {
+      contentType: file.type || 'image/jpeg',
+    });
+
+    return await getDownloadURL(snapshot.ref);
+  } catch (error) {
+    console.error('[productService] Image upload failed:', error?.message);
+    return URL.createObjectURL(file);
+  }
+};
+
+export const uploadProductModel = async (file, userId) => {
+  try {
+    const [{ ref, uploadBytes, getDownloadURL }, storage] = await Promise.all([
+      import('firebase/storage'),
+      (await import('@/firebase/config')).getFirebaseStorage(),
+    ]);
+
+    const ext = file.name?.split('.').pop() || 'glb';
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const storageRef = ref(storage, `models/${userId || 'anonymous'}/${uniqueName}`);
+
+    const snapshot = await uploadBytes(storageRef, file);
+
+    return await getDownloadURL(snapshot.ref);
+  } catch (error) {
+    console.error('[productService] Model upload failed:', error?.message);
+    throw error;
+  }
 };

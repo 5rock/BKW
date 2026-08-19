@@ -3,10 +3,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import X from 'lucide-react/dist/esm/icons/x';
 import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
-export function cn(...inputs) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from '@/utils/cn';
 
 const Dialog = DialogPrimitive.Root;
 

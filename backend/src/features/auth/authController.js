@@ -1,5 +1,5 @@
 const authService = require('./authService');
-const { signAccessToken, signRefreshToken, verifyToken } = require('../../utils/tokenUtils');
+const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../../utils/tokenUtils');
 const User = require('../../models/User'); // Used for verify refresh logic temporarily
 
 const publicUser = (user) => ({
@@ -17,10 +17,15 @@ const publicUser = (user) => ({
   createdAt: user.createdAt,
 });
 
-const sendAuthResponse = (res, statusCode, user) => {
+const sendAuthResponse = async (res, statusCode, user) => {
   const accessToken = signAccessToken(user);
   const refreshToken = signRefreshToken(user);
   const isProd = process.env.NODE_ENV === 'production';
+
+  // Save refresh token to user
+  if (!user.refreshTokens) user.refreshTokens = [];
+  user.refreshTokens.push(refreshToken);
+  await user.save();
 
   res.cookie('gm_access_token', accessToken, {
     httpOnly: true,
@@ -45,7 +50,7 @@ const sendAuthResponse = (res, statusCode, user) => {
 const register = async (req, res, next) => {
   try {
     const user = await authService.register(req.body);
-    return sendAuthResponse(res, 201, user);
+    return await sendAuthResponse(res, 201, user);
   } catch (error) {
     return next(error);
   }
@@ -57,7 +62,7 @@ const login = async (req, res, next) => {
     const { password } = req.body;
     
     const user = await authService.login({ identifier, password });
-    return sendAuthResponse(res, 200, user);
+    return await sendAuthResponse(res, 200, user);
   } catch (error) {
     return next(error);
   }
@@ -66,7 +71,7 @@ const login = async (req, res, next) => {
 const socialLogin = async (req, res, next) => {
   try {
     const user = await authService.socialLogin(req.body);
-    return sendAuthResponse(res, 200, user);
+    return await sendAuthResponse(res, 200, user);
   } catch (error) {
     return next(error);
   }
@@ -78,9 +83,16 @@ const forgotPassword = async (req, res, next) => {
     const resetToken = await authService.generateResetToken(email);
 
     if (resetToken && process.env.NODE_ENV !== 'production') {
+      // In dev, use our mock email service
+      const sendEmail = require('../../utils/sendEmail');
+      await sendEmail({
+        to: email,
+        subject: 'Password Reset - GoldMarket',
+        text: `Your password reset token is: ${resetToken}\nOr use link: http://localhost:5173/reset-password?token=${resetToken}`
+      });
       return res.json({
-        message: 'Password reset token generated. Send this through your email service.',
-        resetToken,
+        message: 'Password reset token generated and mock email sent. Check server console.',
+        resetToken, // keeping it for frontend dev convenience
       });
     }
 
@@ -96,7 +108,7 @@ const resetPassword = async (req, res, next) => {
     const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
     
     const user = await authService.resetPassword(hashedToken, req.body.password);
-    return sendAuthResponse(res, 200, user);
+    return await sendAuthResponse(res, 200, user);
   } catch (error) {
     return next(error);
   }
@@ -107,12 +119,35 @@ const refresh = async (req, res, next) => {
     const refreshToken = req.cookies.gm_refresh_token;
     if (!refreshToken) return res.status(401).json({ message: 'No refresh token provided' });
 
-    const decoded = verifyToken(refreshToken);
-    const user = await User.findById(decoded.id);
+    let decoded;
+    try {
+      decoded = verifyRefreshToken(refreshToken);
+    } catch (err) {
+      // If token expired or invalid, we could check DB, but it's cryptographic failure
+      return res.status(401).json({ message: 'Invalid or expired refresh token' });
+    }
+
+    const user = await User.findById(decoded.id).select('+refreshTokens');
     if (!user) return res.status(401).json({ message: 'Invalid session' });
 
+    // Reuse detection
+    const isTokenValid = user.refreshTokens.includes(refreshToken);
+    if (!isTokenValid) {
+      // Possible token theft / reuse! Clear ALL refresh tokens.
+      user.refreshTokens = [];
+      await user.save();
+      return res.status(401).json({ message: 'Security alert: Invalid token reuse. Please log in again.' });
+    }
+
+    // Token is valid and exists in DB: Rotate token
+    user.refreshTokens = user.refreshTokens.filter((t) => t !== refreshToken);
+    
     const accessToken = signAccessToken(user);
     const newRefreshToken = signRefreshToken(user);
+    
+    user.refreshTokens.push(newRefreshToken);
+    await user.save();
+
     const isProd = process.env.NODE_ENV === 'production';
     
     res.cookie('gm_access_token', accessToken, {
@@ -135,12 +170,32 @@ const refresh = async (req, res, next) => {
   }
 };
 
-const logout = (_req, res) => {
-  const isProd = process.env.NODE_ENV === 'production';
-  const cookieOptions = { httpOnly: true, secure: isProd, sameSite: 'strict' };
-  res.clearCookie('gm_access_token', cookieOptions);
-  res.clearCookie('gm_refresh_token', cookieOptions);
-  res.json({ message: 'Logged out successfully' });
+const logout = async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.gm_refresh_token;
+    if (refreshToken) {
+      // Optional: decode without verification to find user ID, or rely on protect middleware if applied
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.decode(refreshToken);
+        if (decoded && decoded.id) {
+          await User.findByIdAndUpdate(decoded.id, {
+            $pull: { refreshTokens: refreshToken }
+          });
+        }
+      } catch (err) {
+        // Ignore decode errors on logout
+      }
+    }
+
+    const isProd = process.env.NODE_ENV === 'production';
+    const cookieOptions = { httpOnly: true, secure: isProd, sameSite: 'strict' };
+    res.clearCookie('gm_access_token', cookieOptions);
+    res.clearCookie('gm_refresh_token', cookieOptions);
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 module.exports = {

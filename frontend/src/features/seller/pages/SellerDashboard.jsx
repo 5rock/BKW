@@ -1,16 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import PackagePlus from 'lucide-react/dist/esm/icons/package-plus';
-import Star from 'lucide-react/dist/esm/icons/star';
-import Boxes from 'lucide-react/dist/esm/icons/boxes';
-import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
-import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
+import { PackagePlus, Star, Boxes, AlertTriangle, Trash2, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useAuthStore from '@/store/authStore';
 import { deleteProduct, getProducts } from '@/services/productService';
 import { money } from '@/utils/productUtils';
+import { Helmet } from 'react-helmet-async';
 
 const SellerDashboard = () => {
   const user = useAuthStore((s) => s.user);
@@ -34,96 +29,102 @@ const SellerDashboard = () => {
   }, [user?.uid]);
 
   const remove = async (id) => {
-    if (!window.confirm('Delete this product?')) return;
+    if (!window.confirm('Delete this piece from your catalog?')) return;
     await deleteProduct(id);
     setProducts((prev) => prev.filter((product) => product.id !== id));
-    toast.success('Product deleted');
+    toast.success('Piece removed from catalog');
   };
 
   const stats = [
-    { label: 'Products', value: products.length, icon: Boxes },
-    { label: 'Low Stock', value: products.filter((p) => p.stock <= 5).length, icon: AlertTriangle },
+    { label: 'Total Pieces', value: products.length, icon: Boxes },
+    { label: 'Low Inventory', value: products.filter((p) => p.stock <= 5).length, icon: AlertTriangle },
     { label: 'Avg Rating', value: products.length ? (products.reduce((sum, p) => sum + p.rating, 0) / products.length).toFixed(1) : '0.0', icon: Star },
   ];
 
   return (
-    <div className="min-h-screen bg-background-light pt-28 pb-20 dark:bg-background-dark">
-      <main className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+    <div className="min-h-screen bg-bg-primary pt-32 pb-24">
+      <Helmet>
+        <title>Seller Control Center - GoldMarket</title>
+      </Helmet>
+
+      <main className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end border-b border-surface-border pb-8">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.25em] text-brand-red">Seller Command Center</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-text-light dark:text-white md:text-5xl">Product Management</h1>
-            <p className="mt-2 text-text-muted-light dark:text-text-muted-dark">Welcome back, {user?.name}. Manage listings, inventory, and marketplace visibility.</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-color-gold mb-3">Artisan Command Center</p>
+            <h1 className="text-display text-4xl text-text-primary tracking-tight">Catalog Management</h1>
+            <p className="mt-4 text-sm text-text-secondary">Welcome back, {user?.name}. Oversee your exclusive pieces and marketplace presence.</p>
           </div>
-          <Link to="/seller/products/new" className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-yellow px-6 py-4 font-black text-text-light shadow-xl shadow-yellow-400/20 transition hover:scale-105">
-            <PackagePlus className="h-5 w-5" /> Add Product
+          <Link to="/seller/products/new" className="luxury-button flex items-center gap-2">
+            <PackagePlus size={18} /> Offer New Piece
           </Link>
         </div>
 
-        <div className="mb-8 grid gap-4 sm:grid-cols-3">
+        <div className="mb-12 grid gap-6 sm:grid-cols-3">
           {stats.map(({ label, value, icon: Icon }) => (
-            <motion.div key={label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-3xl p-6">
-              <Icon className="mb-4 h-8 w-8 text-brand-red" />
-              <p className="text-3xl font-black text-text-light dark:text-white">{value}</p>
-              <p className="text-sm font-bold text-text-muted-light dark:text-text-muted-dark">{label}</p>
-            </motion.div>
+            <div key={label} className="bg-surface-primary border border-surface-border rounded-3xl p-8 transition-transform hover:-translate-y-1 duration-500">
+              <Icon size={24} className="mb-6 text-color-gold" />
+              <p className="text-display text-4xl text-text-primary mb-2">{value}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">{label}</p>
+            </div>
           ))}
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex items-center justify-between border-b border-gray-100 p-6 dark:border-gray-800">
-            <h2 className="text-xl font-black text-text-light dark:text-white">My Products</h2>
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-black text-text-muted-light dark:bg-gray-800 dark:text-text-muted-dark">{products.length} listings</span>
+        <div className="overflow-hidden rounded-3xl border border-surface-border bg-surface-primary shadow-2xl">
+          <div className="flex items-center justify-between border-b border-surface-border p-6 lg:p-8">
+            <h2 className="text-display text-2xl text-text-primary">Curated Pieces</h2>
+            <span className="rounded-full border border-surface-border bg-bg-primary px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-text-secondary">{products.length} listed</span>
           </div>
 
           {loading ? (
-            <div className="space-y-3 p-6">
-              {Array.from({ length: 5 }).map((_, index) => <div key={index} className="h-20 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />)}
+            <div className="space-y-4 p-6 lg:p-8">
+              {Array.from({ length: 5 }).map((_, index) => <div key={index} className="h-24 animate-pulse rounded-2xl bg-bg-primary" />)}
             </div>
           ) : products.length === 0 ? (
-            <div className="p-16 text-center">
-              <h3 className="text-2xl font-black text-text-light dark:text-white">No products yet</h3>
-              <p className="mt-2 text-text-muted-light dark:text-text-muted-dark">Upload your first product and start selling.</p>
-              <Link to="/seller/products/new" className="mt-6 inline-flex rounded-full bg-brand-yellow px-6 py-3 font-black text-text-light">Upload Product</Link>
+            <div className="p-20 text-center">
+              <h3 className="text-display text-3xl text-text-primary mb-4">No pieces offered yet</h3>
+              <p className="text-text-secondary max-w-sm mx-auto mb-10">Upload your first exclusive piece to begin showcasing your craftsmanship to our clientele.</p>
+              <Link to="/seller/products/new" className="luxury-button">Offer New Piece</Link>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[820px]">
-                <thead className="bg-gray-50 text-left text-xs font-black uppercase tracking-wider text-text-muted-light dark:bg-gray-800 dark:text-text-muted-dark">
+                <thead className="bg-bg-primary text-left text-[10px] font-bold uppercase tracking-widest text-text-muted border-b border-surface-border">
                   <tr>
-                    <th className="px-6 py-4">Product</th>
-                    <th className="px-6 py-4">Category</th>
-                    <th className="px-6 py-4">Price</th>
-                    <th className="px-6 py-4">Stock</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Actions</th>
+                    <th className="px-8 py-6">Piece</th>
+                    <th className="px-6 py-6">Classification</th>
+                    <th className="px-6 py-6">Value</th>
+                    <th className="px-6 py-6">Inventory</th>
+                    <th className="px-6 py-6">Status</th>
+                    <th className="px-8 py-6 text-right">Manage</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                <tbody className="divide-y divide-surface-border">
                   {products.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <img src={product.thumbnail || product.images[0]} alt={product.title} className="h-14 w-14 rounded-2xl object-cover" />
+                    <tr key={product.id} className="transition-colors hover:bg-bg-primary">
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className="h-16 w-16 rounded-xl bg-bg-primary border border-surface-border overflow-hidden shrink-0">
+                             <img src={product.thumbnail || product.images[0]} alt={product.title} className="h-full w-full object-cover" />
+                          </div>
                           <div>
-                            <p className="line-clamp-1 max-w-xs font-black text-text-light dark:text-white">{product.title}</p>
-                            <p className="text-xs font-bold text-text-muted-light dark:text-text-muted-dark">{product.sku}</p>
+                            <p className="line-clamp-1 max-w-[200px] text-sm font-bold text-text-primary mb-1">{product.title}</p>
+                            <p className="text-[10px] uppercase tracking-widest text-text-muted">Ref: {product.sku}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-bold text-text-muted-light dark:text-text-muted-dark">{product.category}</td>
-                      <td className="px-6 py-4 font-black text-text-light dark:text-white">{money(product.finalPrice)}</td>
-                      <td className={`px-6 py-4 font-black ${product.stock <= 5 ? 'text-red-500' : 'text-emerald-500'}`}>{product.stock}</td>
-                      <td className="px-6 py-4">
-                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-600 dark:bg-emerald-950/30">{product.status}</span>
+                      <td className="px-6 py-6 text-[10px] uppercase tracking-widest font-bold text-text-secondary">{product.category}</td>
+                      <td className="px-6 py-6 font-light text-text-primary">{money(product.finalPrice)}</td>
+                      <td className={`px-6 py-6 text-sm font-bold ${product.stock <= 5 ? 'text-red-400' : 'text-text-primary'}`}>{product.stock}</td>
+                      <td className="px-6 py-6">
+                        <span className="rounded-full border border-surface-border bg-bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-text-secondary">{product.status}</span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          <Link to={`/products/${product.id}`} className="rounded-full bg-gray-100 p-2 text-text-light hover:bg-brand-yellow dark:bg-gray-800 dark:text-white">
-                            <ExternalLink className="h-4 w-4" />
+                      <td className="px-8 py-6 text-right">
+                        <div className="flex gap-2 justify-end">
+                          <Link to={`/products/${product.id}`} className="rounded-full bg-bg-primary border border-surface-border p-2 text-text-secondary hover:text-color-gold transition-colors">
+                            <ExternalLink size={16} />
                           </Link>
-                          <button onClick={() => remove(product.id)} className="rounded-full bg-red-50 p-2 text-brand-red hover:bg-red-100 dark:bg-red-950/30">
-                            <Trash2 className="h-4 w-4" />
+                          <button onClick={() => remove(product.id)} className="rounded-full bg-bg-primary border border-surface-border p-2 text-text-secondary hover:text-red-400 transition-colors">
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </td>

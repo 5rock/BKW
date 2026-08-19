@@ -22,6 +22,18 @@ const PARTICLES = Array.from({ length: 10 }, (_, i) => ({
 
 const LuxuryHero = () => {
   const timer = useCountdown(10);
+
+  return (
+    <div className="relative min-h-[95vh] w-full overflow-hidden bg-[var(--color-bg)]">
+      {/* Dynamic ambient background layer */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-[var(--color-bg)] via-amber-950/[0.08] to-[var(--color-bg)] dark:from-[var(--color-bg)] dark:via-amber-900/[0.05]" />
+      
+      {/* Particles layer */}
+      <div className="absolute inset-0 z-0 overflow-hidden mix-blend-screen opacity-20 pointer-events-none">
+        {PARTICLES.map((p) => (
+          <div
+            key={p.id}
+            className="absolute h-1 w-1 rounded-full bg-amber-400/50 shadow-[0_0_12px_2px_rgba(251,191,36,0.3)] animate-pulse"
             style={{ left: p.left, top: p.top, animationDelay: p.delay }}
           />
         ))}
@@ -113,7 +125,7 @@ const LuxuryHero = () => {
 
       {/* Bottom gradient fade */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-20 bg-gradient-to-t from-[#f4ece4] to-transparent dark:from-[#0a0a0a]" />
-    </section>
+    </div>
   );
 };
 

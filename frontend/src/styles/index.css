@@ -4,46 +4,43 @@
 
 @layer base {
   :root {
+    /* Base Brand Colors */
+    --color-obsidian: #050505;
+    --color-graphite: #111111;
+    --color-gold: #C9A227;
+    --color-champagne: #E6D3A3;
+    --color-ivory: #F8F5ED;
+    --color-white: #FFFFFF;
+    
+    /* Dark Theme Default */
     color-scheme: dark;
-    --gold: 245 197 82;
-    --champagne: 255 237 178;
-    --onyx: 4 4 5;
-    --surface-primary: #0a0a0a;
-    --surface-card: rgba(255, 255, 255, 0.065);
-    --surface-elevated: rgba(255, 255, 255, 0.09);
-    --border-subtle: rgba(255, 255, 255, 0.1);
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.68);
-    --text-muted: rgba(255, 255, 255, 0.45);
-    --color-page: #0a0a0a;
-    --color-panel: rgba(255, 255, 255, 0.055);
-    --color-panel-strong: rgba(255, 255, 255, 0.085);
-    --color-border: rgba(255, 255, 255, 0.1);
-    --color-text: #ffffff;
-    --color-muted: rgba(255, 255, 255, 0.56);
-    --color-soft: rgba(255, 255, 255, 0.38);
-    --color-accent: #f5c552;
-    --color-accent-deep: #d49a32;
+    --bg-primary: var(--color-obsidian);
+    --bg-secondary: var(--color-graphite);
+    --bg-card: rgba(17, 17, 17, 0.8);
+    
+    --surface-primary: #050505;
+    --surface-secondary: #111111;
+    --surface-border: rgba(255, 255, 255, 0.1);
+    
+    --text-primary: var(--color-ivory);
+    --text-secondary: rgba(248, 245, 237, 0.7);
+    --text-muted: rgba(248, 245, 237, 0.5);
   }
 
   html.light {
+    /* Light Theme Override */
     color-scheme: light;
-    --surface-primary: #f4ece4;
-    --surface-card: rgba(0, 0, 0, 0.045);
-    --surface-elevated: rgba(0, 0, 0, 0.075);
-    --border-subtle: rgba(0, 0, 0, 0.1);
-    --text-primary: #2d2926;
-    --text-secondary: rgba(45, 41, 38, 0.72);
-    --text-muted: rgba(45, 41, 38, 0.48);
-    --color-page: #f4ece4;
-    --color-panel: rgba(255, 248, 239, 0.68);
-    --color-panel-strong: rgba(236, 213, 195, 0.72);
-    --color-border: rgba(61, 47, 38, 0.11);
-    --color-text: #2d2926;
-    --color-muted: rgba(45, 41, 38, 0.64);
-    --color-soft: rgba(45, 41, 38, 0.42);
-    --color-accent: #b87836;
-    --color-accent-deep: #8b5a2f;
+    --bg-primary: var(--color-ivory);
+    --bg-secondary: #FFFFFF;
+    --bg-card: rgba(255, 255, 255, 0.9);
+    
+    --surface-primary: var(--color-ivory);
+    --surface-secondary: #FFFFFF;
+    --surface-border: rgba(0, 0, 0, 0.1);
+    
+    --text-primary: var(--color-obsidian);
+    --text-secondary: rgba(5, 5, 5, 0.7);
+    --text-muted: rgba(5, 5, 5, 0.5);
   }
 
   html {
@@ -53,329 +50,96 @@
   }
 
   body {
-    @apply bg-[#0a0a0a] font-sans text-white antialiased;
-    /* Scoped transitions — NO wildcard * rule (that inflates TBT on every element) */
-    transition: background-color 0.3s ease, color 0.3s ease;
-    background:
-      radial-gradient(circle at 15% 0%, rgba(245, 197, 82, 0.12), transparent 30rem),
-      radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.08), transparent 24rem),
-      #0a0a0a;
-  }
-
-  html.light body,
-  html:not(.dark) body {
-    @apply bg-[#f4ece4] text-[#2d2926];
-    background:
-      radial-gradient(circle at 15% 0%, rgba(245, 197, 82, 0.1), transparent 35rem),
-      radial-gradient(circle at 85% 10%, rgba(45, 41, 38, 0.04), transparent 28rem),
-      #f4ece4;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    @apply font-sans antialiased;
+    transition: background-color 0.5s ease, color 0.5s ease;
   }
 
   ::selection {
-    @apply bg-amber-300 text-black;
+    background-color: var(--color-gold);
+    color: var(--color-obsidian);
   }
 
   img {
     @apply select-none;
   }
-
-  /* Theme transitions — applied only for 360 ms when toggling dark mode.
-     Scoped to a short-lived class to avoid blanket wildcard transitions
-     that would inflate TBT across ALL DOM elements. */
-  html.theme-transition *,
-  html.theme-transition *::before,
-  html.theme-transition *::after {
-    transition:
-      background-color 0.3s ease,
-      color 0.3s ease,
-      border-color 0.3s ease !important;
-  }
 }
 
 @layer components {
-  .market-liquid-card {
-    position: relative;
-    isolation: isolate;
-    width: 200px;
-    height: 200px;
-    border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.01);
-    background-blend-mode: luminosity;
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  /* 
+    Luxury Design Components 
+  */
+  
+  .glass-panel {
+    background-color: rgba(17, 17, 17, 0.4);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  html.light .glass-panel {
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
   }
 
-  .market-liquid-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1.4px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.08));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    z-index: 0;
+  .luxury-button {
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
+    @apply relative overflow-hidden font-sans font-medium uppercase tracking-widest text-sm
+           px-8 py-4 transition-all duration-300 border border-transparent;
   }
-
-  .market-liquid-card__inner {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    height: 100%;
-    flex-direction: column;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem;
+  
+  .luxury-button:hover {
+    background-color: var(--color-gold);
+    color: var(--color-white);
   }
-
-  .market-hero-scrim {
-    background: linear-gradient(90deg, #070b0a 0%, rgba(7, 11, 10, 0) 56%),
-      linear-gradient(0deg, rgba(7, 11, 14, 0.97) 0%, rgba(7, 11, 10, 0) 44%),
-      linear-gradient(180deg, rgba(7, 11, 10, 0.55) 0%, rgba(7, 11, 10, 0) 36%);
+  
+  .luxury-button-outline {
+    background-color: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--surface-border);
+    @apply relative overflow-hidden font-sans font-medium uppercase tracking-widest text-sm
+           px-8 py-4 transition-all duration-300;
   }
-
-  html.light .market-hero-scrim {
-    background: linear-gradient(90deg, rgba(244, 236, 228, 0.12) 0%, transparent 55%),
-      linear-gradient(0deg, rgba(7, 11, 10, 0.92) 0%, transparent 42%),
-      linear-gradient(180deg, rgba(7, 11, 10, 0.35) 0%, transparent 28%);
+  
+  .luxury-button-outline:hover {
+    border-color: var(--text-primary);
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
   }
 }
 
 @layer utilities {
   .luxury-shell {
-    @apply mx-auto w-full max-w-[1500px] px-4 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-[1600px] px-6 lg:px-12;
   }
 
-  .theme-page {
-    background:
-      radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 32rem),
-      radial-gradient(circle at 90% 4%, color-mix(in srgb, var(--color-panel-strong) 45%, transparent), transparent 26rem),
-      var(--color-page);
-    color: var(--color-text);
-    @apply transition-colors duration-500;
+  .text-display {
+    @apply font-display tracking-tight;
   }
 
-  .theme-card {
-    background: var(--color-panel);
-    border-color: var(--color-border);
-    color: var(--color-text);
-    @apply border shadow-xl shadow-black/5 backdrop-blur-2xl dark:shadow-black/25;
-  }
-
-  .theme-card-strong {
-    background: var(--color-panel-strong);
-    border-color: var(--color-border);
-    color: var(--color-text);
-    @apply border shadow-2xl shadow-black/5 backdrop-blur-2xl dark:shadow-black/35;
-  }
-
-  html.light .theme-card .text-white,
-  html.light .theme-card-strong .text-white {
-    color: var(--color-text);
-  }
-
-  .theme-text {
-    color: var(--color-text);
-  }
-
-  .theme-muted {
-    color: var(--color-muted);
-  }
-
-  .theme-soft {
-    color: var(--color-soft);
-  }
-
-  .theme-input {
-    background: color-mix(in srgb, var(--color-panel) 82%, transparent);
-    border-color: var(--color-border);
-    color: var(--color-text);
-    @apply border outline-none transition focus:border-amber-400/60 focus:ring-4 focus:ring-amber-400/10;
-  }
-
-  .theme-input::placeholder {
-    color: var(--color-soft);
-  }
-
-  html.light .theme-input::placeholder {
-    color: rgba(61, 47, 38, 0.48);
-  }
-
-  html.light .bg-\[\#050505\],
-  html.light .bg-\[\#0a0a0a\],
-  html.light .dark-only-page-fallback {
-    background-color: #f4ece4 !important;
-  }
-
-  .luxury-border {
-    @apply border border-white/10;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  }
-
-  .glass {
-    @apply border border-white/10 bg-white/[0.065] shadow-2xl shadow-black/30 backdrop-blur-2xl;
-  }
-
-  html:not(.dark) .glass {
-    @apply border-black/10 bg-white/80 shadow-black/5;
-  }
-
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-yellow-500 to-orange-200;
-  }
-
-  .gold-ring {
-    box-shadow: 0 0 0 1px rgba(245, 197, 82, 0.22), 0 24px 80px rgba(245, 197, 82, 0.12);
-  }
-
-  .shimmer {
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.04) 0%,
-      rgba(255, 255, 255, 0.14) 40%,
-      rgba(255, 255, 255, 0.04) 60%
-    );
-    background-size: 300% 100%;
-    animation: shimmer 2s ease-in-out infinite;
-  }
-
-  html:not(.dark) .shimmer {
-    background: linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0.04) 0%,
-      rgba(0, 0, 0, 0.08) 40%,
-      rgba(0, 0, 0, 0.04) 60%
-    );
-    background-size: 300% 100%;
-  }
-
-  .floating-particle {
-    animation: floatParticle 10s ease-in-out infinite;
-    will-change: transform, opacity;
-  }
-
-  .gpu-accelerate {
-    will-change: transform;
-    transform: translateZ(0);
+  .text-luxury-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-gold via-brand-champagne to-brand-gold;
   }
 
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+  
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
 
-  /* content-visibility: auto defers layout/paint of off-screen sections,
-     giving the browser more time to render the critical-path LCP region.
-     Always pair with contain-intrinsic-size to prevent scroll jumpiness. */
   .cv-auto {
     content-visibility: auto;
     contain-intrinsic-size: auto 600px;
   }
-
-  .gold-phone-container {
-    width: 100%;
-  }
-
-  .gold-phone-container .gold-phone-input {
-    width: 100%;
-    height: 52px;
-    border-radius: 8px;
-    border: 1px solid rgb(255 255 255 / 0.12);
-    background: rgb(0 0 0 / 0.25);
-    color: #fff;
-    padding-left: 58px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
-  }
-
-  .gold-phone-container .gold-phone-input:focus {
-    border-color: rgb(252 211 77);
-    background: rgb(0 0 0 / 0.35);
-    box-shadow: 0 0 0 4px rgb(252 211 77 / 0.1);
-  }
-
-  .gold-phone-container .gold-phone-input::placeholder {
-    color: rgb(255 255 255 / 0.35);
-  }
-
-  .gold-phone-container .gold-phone-button {
-    border: 0;
-    border-radius: 8px 0 0 8px;
-    background: rgb(255 255 255 / 0.08);
-    padding-left: 8px;
-  }
-
-  .gold-phone-container .gold-phone-button:hover,
-  .gold-phone-container .gold-phone-button.open {
-    background: rgb(255 255 255 / 0.14);
-  }
-
-  .gold-phone-container .gold-phone-dropdown {
-    border: 1px solid rgb(255 255 255 / 0.12);
-    border-radius: 8px;
-    background: #16110a;
-    color: #fff;
-    box-shadow: 0 24px 60px rgb(0 0 0 / 0.45);
-  }
-
-  .gold-phone-container .country:hover,
-  .gold-phone-container .country.highlight {
-    background: rgb(245 158 11 / 0.22);
-  }
-
-  html.light .gold-phone-container .gold-phone-input {
-    border: 1px solid rgb(61 47 38 / 0.14);
-    background: rgb(255 255 255 / 0.96);
-    color: #2d2926;
-  }
-
-  html.light .gold-phone-container .gold-phone-input:focus {
-    border-color: rgb(180 120 54);
-    background: #fff;
-    box-shadow: 0 0 0 4px rgb(184 120 54 / 0.14);
-  }
-
-  html.light .gold-phone-container .gold-phone-input::placeholder {
-    color: rgb(61 47 38 / 0.45);
-  }
-
-  html.light .gold-phone-container .gold-phone-button {
-    background: rgb(0 0 0 / 0.04);
-  }
-
-  html.light .gold-phone-container .gold-phone-button:hover,
-  html.light .gold-phone-container .gold-phone-button.open {
-    background: rgb(0 0 0 / 0.08);
-  }
-
-  html.light .gold-phone-container .gold-phone-dropdown {
-    border: 1px solid rgb(61 47 38 / 0.12);
-    background: #fffdf8;
-    color: #2d2926;
-    box-shadow: 0 24px 60px rgb(0 0 0 / 0.12);
-  }
-}
-
-@keyframes shimmer {
-  0% { background-position: 200% center; }
-  100% { background-position: -200% center; }
-}
-
-@keyframes floatParticle {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.28; }
-  50% { transform: translate3d(18px, -28px, 0) scale(1.12); opacity: 0.7; }
 }
 
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(22px); }
+  from { opacity: 0; transform: translateY(30px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -384,23 +148,7 @@
   to { opacity: 1; }
 }
 
-@keyframes menuIn {
-  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.97); }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-}
-
-@keyframes drawerIn {
-  from { transform: translate3d(100%, 0, 0); }
-  to { transform: translate3d(0, 0, 0); }
-}
-
-@keyframes sheetIn {
-  from { transform: translate3d(0, 100%, 0); }
-  to { transform: translate3d(0, 0, 0); }
-}
-
-@keyframes badgePop {
-  0% { transform: scale(0.75); opacity: 0; }
-  55% { transform: scale(1.18); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

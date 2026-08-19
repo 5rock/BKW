@@ -27,3 +27,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generated lint/build artifacts — do not commit
+lint_output.txt
+lint.json
+*.err.log
+*.out.log

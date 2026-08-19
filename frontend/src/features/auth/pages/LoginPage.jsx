@@ -9,7 +9,7 @@ import LockKeyhole from 'lucide-react/dist/esm/icons/lock-keyhole';
 import Mail from 'lucide-react/dist/esm/icons/mail';
 import Phone from 'lucide-react/dist/esm/icons/phone';
 import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import AuthLayout from '@/features/auth/components/AuthLayout';
 import {
   authCheckboxClass,

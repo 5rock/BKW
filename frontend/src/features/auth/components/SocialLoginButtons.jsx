@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import useAuthStore from '@/store/authStore';
 
 const GoogleIcon = () => (

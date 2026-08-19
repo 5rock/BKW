@@ -1,17 +1,44 @@
-const fs = require('fs');
-const path = require('path');
 const Product = require('../models/Product');
 const { isMockMode } = require('../utils/connectDB');
 const { mockModel } = require('../utils/db');
 
 const MockProduct = mockModel('products');
 
+// FIX: Whitelist of fields allowed in product create/update — prevents mass assignment
+const ALLOWED_PRODUCT_FIELDS = [
+  'name', 'description', 'price', 'category', 'images', 'stock',
+  'brand', 'sku', 'tags', 'sizes', 'colors', 'metadata', 'discountPrice', 'model3d'
+];
 
+/** Pick only allowed fields from an object */
+const pickSafeFields = (source) => {
+  const safe = {};
+  for (const key of ALLOWED_PRODUCT_FIELDS) {
+    if (source[key] !== undefined) {
+      if (key === 'images' && Array.isArray(source[key])) {
+        safe[key] = source[key].filter(url => {
+          try {
+            const parsed = new URL(url);
+            return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+          } catch {
+            return false; // Remove invalid URLs
+          }
+        });
+      } else {
+        safe[key] = source[key];
+      }
+    }
+  }
+  return safe;
+};
 
 // GET /api/products
-const getProducts = async (req, res) => {
+const getProducts = async (req, res, next) => {
   try {
-    const { search, category, sort, minPrice, maxPrice, limit = 20 } = req.query;
+    const { search, category, sort, minPrice, maxPrice, limit = 20, page = 1 } = req.query;
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+    const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+    const skip = (parsedPage - 1) * parsedLimit;
 
     if (isMockMode()) {
       const db = require('../utils/db').readDB();
@@ -39,7 +66,15 @@ const getProducts = async (req, res) => {
       else if (sort === 'rating') products.sort((a, b) => b.rating - a.rating);
       else if (sort === 'newest') products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-      return res.json({ products: products.slice(0, parseInt(limit)), total: products.length });
+      const total = products.length;
+      const totalPages = Math.ceil(total / parsedLimit);
+      return res.json({
+        products: products.slice(skip, skip + parsedLimit),
+        total,
+        page: parsedPage,
+        totalPages,
+        hasMore: parsedPage < totalPages,
+      });
     }
 
     // MongoDB Mode
@@ -58,77 +93,116 @@ const getProducts = async (req, res) => {
     else if (sort === 'rating') sortOption.ratingsAverage = -1;
     else sortOption.createdAt = -1;
 
-    const products = await Product.find(query).sort(sortOption).limit(parseInt(limit, 10));
-    const total = await Product.countDocuments(query);
-    res.json({ products, total });
+    const [products, total] = await Promise.all([
+      Product.find(query)
+        .select('name price category images stock brand ratingsAverage ratingsQuantity discountPrice createdAt')
+        .sort(sortOption)
+        .skip(skip)
+        .limit(parsedLimit),
+      Product.countDocuments(query),
+    ]);
+
+    const totalPages = Math.ceil(total / parsedLimit);
+    res.json({
+      products,
+      total,
+      page: parsedPage,
+      totalPages,
+      hasMore: parsedPage < totalPages,
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };
 
 // GET /api/products/:id
-const getProductById = async (req, res) => {
+const getProductById = async (req, res, next) => {
   try {
     const Model = isMockMode() ? MockProduct : Product;
     const product = await Model.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
     res.json(product);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };
 
 // POST /api/products
-const createProduct = async (req, res) => {
+const createProduct = async (req, res, next) => {
   try {
     const Model = isMockMode() ? MockProduct : Product;
+    // FIX: Only pick allowed fields — prevents mass assignment of ratingsAverage, seller, etc.
+    const safeData = pickSafeFields(req.body);
     const productData = {
-      ...req.body,
+      ...safeData,
       seller: req.user.id,
-      sellerId: req.user.id,
     };
     const product = await Model.create(productData);
     res.status(201).json(product);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err);
   }
 };
 
 // PUT /api/products/:id
-const updateProduct = async (req, res) => {
+const updateProduct = async (req, res, next) => {
   try {
     const Model = isMockMode() ? MockProduct : Product;
     const product = await Model.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    Object.assign(product, req.body);
-    
+    // FIX: Owner authorization — only the seller who created the product (or admin) can update it
+    const sellerId = product.seller?.toString?.() || product.sellerId;
+    if (sellerId !== req.user.id && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'Not authorized — you can only update your own products' });
+    }
+
+    // FIX: Only merge allowed fields — prevents overwriting seller, ratings, etc.
+    const safeData = pickSafeFields(req.body);
+    Object.assign(product, safeData);
+
     if (isMockMode()) {
       await MockProduct.save(product);
     } else {
       await product.save();
     }
-    
+
     res.json(product);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    next(err);
   }
 };
 
 // DELETE /api/products/:id
-const deleteProduct = async (req, res) => {
+const deleteProduct = async (req, res, next) => {
   try {
-    const Model = isMockMode() ? MockProduct : Product;
     if (isMockMode()) {
       const db = require('../utils/db').readDB();
+      const product = db.products.find(p => p.id === req.params.id || p._id === req.params.id);
+      if (!product) return res.status(404).json({ message: 'Product not found' });
+
+      // FIX: Owner authorization for mock mode
+      const sellerId = product.seller || product.sellerId;
+      if (sellerId !== req.user.id && !req.user.isAdmin) {
+        return res.status(403).json({ message: 'Not authorized — you can only delete your own products' });
+      }
+
       db.products = db.products.filter(p => p.id !== req.params.id && p._id !== req.params.id);
       require('../utils/db').writeDB(db);
     } else {
+      const product = await Product.findById(req.params.id);
+      if (!product) return res.status(404).json({ message: 'Product not found' });
+
+      // FIX: Owner authorization for MongoDB mode
+      if (product.seller?.toString() !== req.user.id && !req.user.isAdmin) {
+        return res.status(403).json({ message: 'Not authorized — you can only delete your own products' });
+      }
+
       await Product.findByIdAndDelete(req.params.id);
     }
     res.json({ message: 'Product deleted' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };
 

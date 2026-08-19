@@ -1,41 +1,18 @@
-/**
- * CartItem.jsx — Memoized cart item row.
- *
- * Fixes vs original:
- *  1. Removed motion.div with layout + initial/animate/exit — caused DOM
- *     measurement on every cart change (getBoundingClientRect per item)
- *  2. Removed motion.button whileTap — replaced with CSS active:scale-90
- *  3. Added React.memo — only re-renders when the specific item changes
- *  4. useCartActions for stable action references (no re-render on cart state change)
- *  5. Wrapped handlers in useCallback with minimal deps
- *  6. Added loading=lazy + decoding=async on image (CartPage is below fold)
- *  7. Explicit image dimensions prevent CLS
- */
 import { memo, useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Bookmark from 'lucide-react/dist/esm/icons/bookmark';
-import Minus from 'lucide-react/dist/esm/icons/minus';
-import Plus from 'lucide-react/dist/esm/icons/plus';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+import { Bookmark, Minus, Plus, Trash2, ShieldCheck } from 'lucide-react';
 import useCartStore from '@/store/cartStore';
 import { optimizeUnsplash } from '@/utils/imageUtils';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1607082349566-187342175e2f?auto=format&fit=crop&w=400&q=75';
 
 const CartItem = memo(({ item }) => {
-  // Only subscribe to actions — this component never needs to read cart state
-  // so it will NOT re-render when cartTotal, cartCount, or other items change
   const updateItem = useCartStore((s) => s.updateItem);
   const removeItem = useCartStore((s) => s.removeItem);
   const saveForLater = useCartStore((s) => s.saveForLater);
   const [loading, setLoading] = useState(false);
 
   const { product, quantity, id: itemId, savedForLater } = item;
-  if (!product) return null;
-
-  const unitPrice = item.price || product.finalPrice || product.price || 0;
-  const productId = product.id || product._id;
-  const imgSrc = optimizeUnsplash(product.images?.[0] || product.thumbnail) || FALLBACK_IMG;
 
   const handleQuantity = useCallback(async (delta) => {
     setLoading(true);
@@ -58,93 +35,103 @@ const CartItem = memo(({ item }) => {
   const decrement = useCallback(() => handleQuantity(-1), [handleQuantity]);
   const increment = useCallback(() => handleQuantity(1), [handleQuantity]);
 
+  if (!product) return null;
+
+  const unitPrice = item.price || product.finalPrice || product.price || 0;
+  const productId = product.id || product._id;
+  const imgSrc = optimizeUnsplash(product.images?.[0] || product.thumbnail) || FALLBACK_IMG;
+
   return (
-    /* CSS class animation instead of motion.div */
     <div
-      className={`theme-card flex flex-col gap-6 rounded-2xl p-4 transition-[border-color,opacity] duration-300 hover:border-amber-600/25 dark:hover:border-amber-200/20 sm:flex-row sm:p-6 ${
-        loading ? 'pointer-events-none opacity-50' : ''
+      className={`group flex flex-col sm:flex-row gap-6 p-6 transition-all duration-300 border border-surface-border bg-surface-primary rounded-2xl ${
+        loading ? 'pointer-events-none opacity-50' : 'hover:border-text-primary'
       }`}
     >
       {/* Product Image */}
-      <div className="relative h-32 w-full flex-shrink-0 overflow-hidden rounded-xl bg-neutral-900 sm:h-32 sm:w-32">
+      <div className="relative h-40 w-full sm:h-40 sm:w-32 flex-shrink-0 overflow-hidden rounded-xl bg-bg-primary">
         <Link to={`/products/${productId}`}>
           <img
             src={imgSrc}
             alt={product.name || product.title}
-            width={128}
-            height={128}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
         </Link>
         {(product.discount > 0 || product.discountPercent > 0) && (
-          <span className="absolute left-2 top-2 rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+          <span className="absolute top-2 left-2 bg-color-gold text-bg-primary px-2 py-1 text-[10px] font-bold uppercase tracking-widest shadow-md">
             -{product.discount || product.discountPercent}%
           </span>
         )}
       </div>
 
       {/* Details */}
-      <div className="flex flex-grow flex-col justify-between">
-        <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col flex-grow justify-between">
+        <div className="flex justify-between items-start gap-4">
           <div>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-amber-700/70 dark:text-amber-200/60">
-              {product.category}
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+              {product.brand || product.category}
             </p>
             <Link to={`/products/${productId}`}>
-              <h3 className="theme-text line-clamp-2 font-bold leading-tight transition-colors hover:text-amber-700 dark:hover:text-amber-200">
+              <h3 className="text-lg text-text-primary font-medium tracking-wide transition-colors group-hover:text-color-gold">
                 {product.name || product.title}
               </h3>
             </Link>
+            {(item.selectedSize || item.selectedColor) && (
+              <p className="text-xs text-text-secondary mt-2 flex gap-3">
+                {item.selectedSize && <span>Size: {item.selectedSize}</span>}
+                {item.selectedColor && <span>Color: {item.selectedColor}</span>}
+              </p>
+            )}
           </div>
-          <div className="shrink-0 text-right">
-            <span className="theme-text whitespace-nowrap text-xl font-black">
+          <div className="text-right">
+            <span className="text-xl text-text-primary font-light">
               ${(unitPrice * quantity).toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
             </span>
             {quantity > 1 && (
-              <p className="theme-soft mt-1 text-xs">${unitPrice.toLocaleString()} each</p>
+              <p className="text-xs text-text-secondary mt-1">${unitPrice.toLocaleString()} each</p>
             )}
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-between">
-          {/* Quantity Controls — CSS active:scale-90 replaces motion.button whileTap */}
-          <div className="theme-card-strong flex items-center rounded-full">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-surface-border">
+          {/* Quantity Controls */}
+          <div className="flex items-center justify-between border border-surface-border rounded-full px-2 py-1 w-28 bg-bg-primary">
             <button
               onClick={decrement}
               aria-label="Decrease quantity"
-              className="theme-text rounded-full p-2 transition-[background-color,color] hover:bg-black/5 hover:text-amber-700 active:scale-90 dark:hover:bg-white/10 dark:hover:text-amber-200"
+              className="text-text-secondary hover:text-color-gold p-1.5 transition-colors"
             >
-              <Minus className="h-4 w-4" />
+              <Minus size={14} />
             </button>
-            <span className="theme-text min-w-[40px] px-2 text-center font-black">{quantity}</span>
+            <span className="text-text-primary text-sm font-bold w-6 text-center">{quantity}</span>
             <button
               onClick={increment}
               aria-label="Increase quantity"
-              className="theme-text rounded-full p-2 transition-[background-color,color] hover:bg-black/5 hover:text-amber-700 active:scale-90 dark:hover:bg-white/10 dark:hover:text-amber-200"
+              className="text-text-secondary hover:text-color-gold p-1.5 transition-colors"
             >
-              <Plus className="h-4 w-4" />
+              <Plus size={14} />
             </button>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <button
               onClick={handleSave}
-              className="theme-muted flex items-center gap-1.5 rounded-lg p-2 text-sm font-semibold transition-[background-color,color] hover:bg-amber-700/10 hover:text-amber-800 dark:hover:bg-amber-200/10 dark:hover:text-amber-200"
+              className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-text-secondary hover:text-text-primary transition-colors"
             >
-              <Bookmark className="h-4 w-4" />
-              <span className="hidden sm:inline">{savedForLater ? 'Move to cart' : 'Save'}</span>
+              <Bookmark size={14} className={savedForLater ? "fill-current" : ""} />
+              <span className="hidden sm:inline">{savedForLater ? 'Move to bag' : 'Save'}</span>
             </button>
+            <div className="w-px h-4 bg-surface-border hidden sm:block" />
             <button
               onClick={handleRemove}
-              className="theme-muted flex items-center gap-1.5 rounded-lg p-2 text-sm font-semibold transition-[background-color,color] hover:bg-red-500/10 hover:text-red-500 dark:hover:text-red-300"
+              className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-text-secondary hover:text-red-400 transition-colors"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 size={14} />
               <span className="hidden sm:inline">Remove</span>
             </button>
           </div>

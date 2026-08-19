@@ -1,8 +1,6 @@
-const bcrypt = require('bcryptjs');
 const authRepo = require('./authRepository');
 const { resolveRole } = require('../../utils/roleResolver');
 const { verifyFirebaseToken } = require('../../utils/firebaseAdmin');
-const { isMockMode } = require('../../utils/connectDB');
 
 const normalizePhone = (phone = '') => {
   const value = String(phone).replace(/[^\d+]/g, '');

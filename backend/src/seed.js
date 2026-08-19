@@ -17,8 +17,9 @@ const seedMock = async () => {
   const MockProduct = mockModel('products');
   const db = require('./utils/db').readDB();
   if ((db.products || []).length > 0) {
-    console.log(`Mock DB already has ${db.products.length} products, skipping.`);
-    return;
+    console.log(`Clearing ${db.products.length} existing mock products...`);
+    db.products = [];
+    require('./utils/db').writeDB(db);
   }
 
   for (const product of SAMPLE_PRODUCTS) {
@@ -38,8 +39,8 @@ const seedMongo = async () => {
 
   const count = await Product.countDocuments();
   if (count > 0) {
-    console.log(`MongoDB already has ${count} products — skipping product seed.`);
-    return;
+    console.log(`Clearing ${count} existing products from MongoDB...`);
+    await Product.deleteMany({});
   }
 
   await Product.insertMany(

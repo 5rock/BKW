@@ -28,6 +28,12 @@ service firebase.storage {
              && request.resource.size < 8 * 1024 * 1024; // 8 MB max
     }
 
+    // FIX: Validate 3D model file type strictly
+    function isValidModel() {
+      return request.resource.contentType.matches('model/gltf-binary|application/octet-stream')
+             && request.resource.size < 15 * 1024 * 1024; // 15 MB max
+    }
+
     // ── Product images (seller uploads) ────────────────────────────────────
     match /products/{userId}/{fileName} {
       // Public read — products should be visible to all
@@ -39,6 +45,18 @@ service firebase.storage {
         && isValidImage();
 
       // FIX: Owner or admin can delete
+      allow delete: if (signedIn() && request.auth.uid == userId && isVerifiedSeller())
+                      || isAdmin();
+    }
+
+    // ── Product 3D Models (seller uploads) ─────────────────────────────────
+    match /products/{userId}/{productId}/model/{fileName} {
+      allow read: if true;
+
+      allow create, update: if isVerifiedSeller()
+        && request.auth.uid == userId
+        && isValidModel();
+
       allow delete: if (signedIn() && request.auth.uid == userId && isVerifiedSeller())
                       || isAdmin();
     }

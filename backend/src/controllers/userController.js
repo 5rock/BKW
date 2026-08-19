@@ -5,7 +5,7 @@ const { mockModel } = require('../utils/db');
 const MockUser = mockModel('users');
 
 /** GET /api/users/me */
-const getMe = async (req, res) => {
+const getMe = async (req, res, next) => {
   try {
     const Model = isMockMode() ? MockUser : User;
     const user = await Model.findById(req.user.id);
@@ -27,13 +27,12 @@ const getMe = async (req, res) => {
       createdAt: user.createdAt,
     });
   } catch (err) {
-    console.error('getMe error:', err);
-    res.status(500).json({ message: 'Server error' });
+    next(err);
   }
 };
 
 /** PUT /api/users/me */
-const updateMe = async (req, res) => {
+const updateMe = async (req, res, next) => {
   try {
     const { name, avatar } = req.body;
     const Model = isMockMode() ? MockUser : User;
@@ -43,7 +42,16 @@ const updateMe = async (req, res) => {
 
     // Only allow updating safe fields
     if (name) user.name = name.trim();
-    if (avatar) user.avatar = avatar;
+    if (avatar) {
+      try {
+        const parsed = new URL(avatar);
+        if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+          user.avatar = avatar;
+        }
+      } catch {
+        // Ignore invalid URL
+      }
+    }
     
     if (isMockMode()) {
       await MockUser.save(user);
@@ -53,8 +61,7 @@ const updateMe = async (req, res) => {
 
     res.json({ message: 'Profile updated', user });
   } catch (err) {
-    console.error('updateMe error:', err);
-    res.status(500).json({ message: 'Server error' });
+    next(err);
   }
 };
 
